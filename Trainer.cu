@@ -11,6 +11,15 @@
 #include <numeric>
 #include <cstring>
 
+#include "cuda_runtime.h"
+#include "cuda.h"
+#include "cuda_runtime_api.h"
+#include "cuda_device_runtime_api.h"
+#include "device_functions.h"
+#include "device_launch_parameters.h"
+
+#include <stdio.h>
+
 TexasHoldemTrainer::~TexasHoldemTrainer() {
     delete schablone;
 }
@@ -19,6 +28,38 @@ TexasHoldemTrainer::TexasHoldemTrainer(std::string path) {
     blueprintHandler = nullptr;
     schablone = Template::createDefaultTemplate(path);
 }
+
+
+__constant__ float* dPots;
+__constant__ bool* dFolded;
+__constant__ bool* dPlayer0;
+__constant__ int dNumStateNodes;
+__constant__ bool dPlayerWon;
+__constant__ bool dDraw;
+
+
+__global__ void calculatePayoffs(float* dPayoff) {
+
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+    float* potPointer = dPots + i * 2;
+    bool localFolded = dFolded[i];
+    bool localPlayer0 = dPlayer0[dNumStateNodes + i];
+    bool currentPlayer = localPlayer0 ? 0 : 1;
+
+    bool localPlayerWon = dPlayerWon;
+    if (localFolded) {
+        localPlayerWon = currentPlayer;
+    }
+
+    float localPayoff = 0.f;
+    if (!dDraw) {
+        localPayoff = potPointer[(currentPlayer + 1) % 2];
+    }
+
+    dPayoff[dNumStateNodes + i] = (localPlayerWon == currentPlayer ? localPayoff : -localPayoff);
+}
+
 
 int TexasHoldemTrainer::trainSequentiell(int numIterations) {
     Logger::log("Training start");
@@ -66,24 +107,19 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
     int numLeafNodes = schablone->structureList->numLeafNodes;
     int numStateNodes = schablone->structureList->numStateNodes;
 
-    for (int i = 0; i < numLeafNodes; i++) {
-        float* potPointer = schablone->structureList->pots + i * (size_t)2;
-        bool folded = schablone->structureList->folded[i];
-        bool player0 = schablone->structureList->player0[numStateNodes + i];
-        bool currentPlayer = player0 ? 0 : 1;
+    float* dPayoff;
+    cudaMalloc((void**)&dPayoff, sizeof(float) * numLeafNodes);
 
-        bool localePlayerWon = playerWon;
-        if (folded) {
-            localePlayerWon = currentPlayer;
-        }
-
-        float payoff = 0.f;
-        if (!draw) {
-            payoff = potPointer[(currentPlayer + 1) % 2];
-        }
-
-        schablone->structureList->payoff[numStateNodes + i] = (localePlayerWon == currentPlayer ? payoff : -payoff);
-    }
+    cudaMemcpy(dPots, schablone->structureList->pots, sizeof(float) * 2 * numLeafNodes, cudaMemcpyHostToDevice);
+    cudaMemcpy(dFolded, schablone->structureList->folded, sizeof(bool) * numLeafNodes, cudaMemcpyHostToDevice);
+    cudaMemcpy(dPlayer0, schablone->structureList->player0, sizeof(bool) * numLeafNodes, cudaMemcpyHostToDevice);
+    cudaMemcpy(dNumStateNodes, &numStateNodes, sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(dPlayerWon, &playerWon, sizeof(bool), cudaMemcpyHostToDevice);
+    cudaMemcpy(dDraw, &draw, sizeof(bool), cudaMemcpyHostToDevice);
+    
+    dim3 gridSize(1);
+    dim3 blockSize(numLeafNodes);
+    calculatePayoffs<<<gridSize, blockSize>>>(dPayoff);
 
     //c_1) prepare strategie laden
     for (int round = 0; round < 4; round++) {
