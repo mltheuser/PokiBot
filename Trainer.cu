@@ -9,6 +9,8 @@
 #include <numeric>
 #include <cstring>
 
+using std::vector;
+
 TexasHoldemTrainer::~TexasHoldemTrainer() {
     delete schablone;
 }
@@ -65,9 +67,9 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
     int numStateNodes = schablone->structureList->numStateNodes;
 
     for (int i = 0; i < numLeafNodes; i++) {
-        float* potPointer = schablone->structureList->pots + i * (size_t)2;
-        bool folded = schablone->structureList->folded[i];
-        bool player0 = schablone->structureList->player0[numStateNodes + i];
+        vector<float> potVector(schablone->structureList->pots.begin() + i * 2, schablone->structureList->pots.begin() + i * 2 + 2);
+        bool folded = schablone->structureList->folded.at(i);
+        bool player0 = schablone->structureList->player0.at(numStateNodes + i);
         bool currentPlayer = player0 ? 0 : 1;
 
         bool localePlayerWon = playerWon;
@@ -77,10 +79,10 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
 
         float payoff = 0.f;
         if (!draw) {
-            payoff = potPointer[(currentPlayer + 1) % 2];
+            payoff = potVector.at((currentPlayer + 1) % 2);
         }
 
-        schablone->structureList->payoff[numStateNodes + i] = (localePlayerWon == currentPlayer ? payoff : -payoff);
+        schablone->structureList->payoff.at(numStateNodes + i) = (localePlayerWon == currentPlayer ? payoff : -payoff);
     }
 
     //c_1) prepare strategie laden
@@ -96,49 +98,46 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
 
             if (newBucket) {
                 info.bucketFunction->bucketList.insert(info.bucketFunction->bucketList.end(), bucket.begin(), bucket.end());
-                float* zeroArray = new float[size] {0.f};
-                info.blueprintHandler->writePolicies(pos, size * sizeof(float), zeroArray);
-                delete[](zeroArray);
+                vector<float> zeroVector = vector<float>(size, 0.f);
+                info.blueprintHandler->writePolicies(pos, size * sizeof(float), zeroVector);
 
                 int otherPlayer = (player + 1) % 2;
                 RoundPlayerInfo otherInfo = schablone->roundInfos.at(round).at(otherPlayer);
                 int otherSize = otherInfo.elementSize;
-                float* otherZeroArray = new float[otherSize] {0.f};
-                otherInfo.blueprintHandler->writePolicies(pos, otherSize * sizeof(float), otherZeroArray);
-                delete[](otherZeroArray);
+                vector<float> otherZeroVector = vector<float>(otherSize, 0.f);
+                otherInfo.blueprintHandler->writePolicies(pos, otherSize * sizeof(float), otherZeroVector);
             }
-            float* reads = info.blueprintHandler->readPolicies(pos, size * sizeof(float));
-            std::memcpy(schablone->cumulativeRegrets.at(player) + info.startPointTemplate, reads, size * sizeof(float));
-            delete[] reads;
+            vector<float> reads = info.blueprintHandler->readPolicies(pos, size * sizeof(float));
+            std::copy_n(reads.begin(), size, schablone->cumulativeRegrets.at(player).begin() + info.startPointTemplate)
         }
     }
 
     //c_2) forwardpass: setze reach probabilities
-    schablone->structureList->reachProbabilities[0] = 1.f;
-    schablone->structureList->reachProbabilities[1] = 1.f;
+    schablone->structureList->reachProbabilities.at(0) = 1.f;
+    schablone->structureList->reachProbabilities.at(1) = 1.f;
 
     for (int i = 0; i < numStateNodes; i++) {
         std::unique_ptr<TrainingInitStruct> trainingInitStruct = initTrainingInitStruct(schablone, i);
 
         int numChildren = trainingInitStruct->numChildren;
-        int* children = trainingInitStruct->children;
+        vector<int> children = trainingInitStruct->children;
         int otherPlayer = trainingInitStruct->otherPlayer;
         int currentPlayer = trainingInitStruct->currentPlayer;
-        float* policy = trainingInitStruct->policy;
-        float* reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
+        vector<float> policy = trainingInitStruct->policy;
+        vector<float> reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
 
         for (int j = 0; j < numChildren; j++) {
-            schablone->structureList->reachProbabilities[2 * children[j] + currentPlayer] = policy[j] * reachProbabilitiesLocal[currentPlayer];
-            schablone->structureList->reachProbabilities[2 * children[j] + otherPlayer] = reachProbabilitiesLocal[otherPlayer];
+            schablone->structureList->reachProbabilities.at(2 * children.at(j) + currentPlayer) = policy.at(j) * reachProbabilitiesLocal.at(currentPlayer);
+            schablone->structureList->reachProbabilities.at(2 * children.at(j) + otherPlayer) = reachProbabilitiesLocal.at(otherPlayer);
         }
-        free(trainingInitStruct->policy);
+        //free(trainingInitStruct->policy);
     }
 
     //d_1) backwardpass: setze regrets
     for (int i = numStateNodes - 1; i >= 0; i--) {
         std::unique_ptr<TrainingInitStruct> trainingInitStruct = initTrainingInitStruct(schablone, i);
 
-        int* children = trainingInitStruct->children;
+        vector<int> children = trainingInitStruct->children;
         int numChildren = trainingInitStruct->numChildren;
 
         vector<float> upstreamPayoffs;
@@ -148,14 +147,14 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
             upstreamPayoffs.push_back(-1 * schablone->structureList->payoff[children[j]]);
         }
 
-        float* policy = trainingInitStruct->policy;
+        vector<float> policy = trainingInitStruct->policy;
 
-        float* cumulativeRegrets = trainingInitStruct->cumulativeRegrets;
+        vector<float> cumulativeRegrets = trainingInitStruct->cumulativeRegrets;
 
         float nodeUtility = std::inner_product(policy, policy + numChildren, upstreamPayoffs.begin(), 0.f);
         schablone->structureList->payoff[i] = nodeUtility;
 
-        float* reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
+        vector<float> reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
         int currentPlayer = trainingInitStruct->currentPlayer;
         int otherPlayer = trainingInitStruct->otherPlayer;
 
@@ -174,12 +173,12 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
         for (int j = 0; j < numChildren; j++) {
             counterRegrets.push_back(reachProbabilitiesLocal[otherPlayer] * (counterActionValues[j] - counterValue));
 
-            cumulativeRegrets[j] = cumulativeRegrets[j] + std::max(0.f, counterRegrets[j]);
+            cumulativeRegrets.at(j) = cumulativeRegrets.at(j) + std::max(0.f, counterRegrets[j]);
         }
-        free(trainingInitStruct->policy);
+        //free(trainingInitStruct->policy);
     }
 
-    //d_2) postpare strategie zurückschreiben
+    //d_2) postpare strategie zurï¿½ckschreiben
     for (int round = 0; round < 4; round++) {
         for (int player = 0; player < 2; player++) {
             RoundPlayerInfo info = schablone->roundInfos.at(round).at(player);
@@ -187,7 +186,9 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
 
             int size = info.elementSize;
 
-            info.blueprintHandler->writePolicies(pos, size * sizeof(float), schablone->cumulativeRegrets.at(player) + info.startPointTemplate);
+            vector<float> writeVector;
+            std::copy_n(schablone->cumulativeRegrets.at(player).begin() + info.startPointTemplate, size, std::back_inserter(writeVector));
+            info.blueprintHandler->writePolicies(pos, size * sizeof(float), writeVector);
         }
     }
 
