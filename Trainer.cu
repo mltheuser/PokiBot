@@ -128,8 +128,10 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
         float* reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
 
         for (int j = 0; j < numChildren; j++) {
-            schablone->structureList->reachProbabilities[2 * children[j] + currentPlayer] = policy[j] * reachProbabilitiesLocal[currentPlayer];
-            schablone->structureList->reachProbabilities[2 * children[j] + otherPlayer] = reachProbabilitiesLocal[otherPlayer];
+            if (children[j] < numStateNodes) {
+                schablone->structureList->reachProbabilities[2 * children[j] + currentPlayer] = policy[j] * reachProbabilitiesLocal[currentPlayer];
+                schablone->structureList->reachProbabilities[2 * children[j] + otherPlayer] = reachProbabilitiesLocal[otherPlayer];
+            }
         }
         free(trainingInitStruct->policy);
     }
