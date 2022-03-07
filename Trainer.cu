@@ -99,16 +99,16 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
             if (newBucket) {
                 info.bucketFunction->bucketList.insert(info.bucketFunction->bucketList.end(), bucket.begin(), bucket.end());
                 vector<float> zeroVector = vector<float>(size, 0.f);
-                info.blueprintHandler->writePolicies(pos, size * sizeof(float), zeroVector);
+                info.blueprintHandler->writePolicies(pos, size * sizeof(float), &zeroVector.at(0));
 
                 int otherPlayer = (player + 1) % 2;
                 RoundPlayerInfo otherInfo = schablone->roundInfos.at(round).at(otherPlayer);
                 int otherSize = otherInfo.elementSize;
                 vector<float> otherZeroVector = vector<float>(otherSize, 0.f);
-                otherInfo.blueprintHandler->writePolicies(pos, otherSize * sizeof(float), otherZeroVector);
+                otherInfo.blueprintHandler->writePolicies(pos, otherSize * sizeof(float), &otherZeroVector.at(0));
             }
             vector<float> reads = info.blueprintHandler->readPolicies(pos, size * sizeof(float));
-            std::copy_n(reads.begin(), size, schablone->cumulativeRegrets.at(player).begin() + info.startPointTemplate)
+            std::copy_n(reads.begin(), size, schablone->cumulativeRegrets.at(player).begin() + info.startPointTemplate);
         }
     }
 
@@ -151,7 +151,7 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
 
         vector<float> cumulativeRegrets = trainingInitStruct->cumulativeRegrets;
 
-        float nodeUtility = std::inner_product(policy, policy + numChildren, upstreamPayoffs.begin(), 0.f);
+        float nodeUtility = std::inner_product(policy.begin(), policy.begin() + numChildren, upstreamPayoffs.begin(), 0.f);
         schablone->structureList->payoff[i] = nodeUtility;
 
         vector<float> reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
@@ -186,9 +186,7 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
 
             int size = info.elementSize;
 
-            vector<float> writeVector;
-            std::copy_n(schablone->cumulativeRegrets.at(player).begin() + info.startPointTemplate, size, std::back_inserter(writeVector));
-            info.blueprintHandler->writePolicies(pos, size * sizeof(float), writeVector);
+            info.blueprintHandler->writePolicies(pos, size * sizeof(float), &schablone->cumulativeRegrets.at(player).at(info.startPointTemplate));
         }
     }
 
