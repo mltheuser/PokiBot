@@ -23,48 +23,48 @@ extern "C" {
 
 #include <stdbool.h>
 
-    enum rank_category {
-        // FIVE_OF_A_KIND = 0, // Reserved
-        STRAIGHT_FLUSH = 1,
-        FOUR_OF_A_KIND,
-        FULL_HOUSE,
-        FLUSH,
-        STRAIGHT,
-        THREE_OF_A_KIND,
-        TWO_PAIR,
-        ONE_PAIR,
-        HIGH_CARD,
-    };
+enum rank_category {
+  // FIVE_OF_A_KIND = 0, // Reserved
+  STRAIGHT_FLUSH = 1,
+  FOUR_OF_A_KIND,
+  FULL_HOUSE,
+  FLUSH,
+  STRAIGHT,
+  THREE_OF_A_KIND,
+  TWO_PAIR,
+  ONE_PAIR,
+  HIGH_CARD,
+};
 
-    /*
-     * Given a rank from 1 to 7462
-     * Returns an integer from the enum rank_category
-     */
-    enum rank_category get_rank_category(int rank);
+/*
+ * Given a rank from 1 to 7462
+ * Returns an integer from the enum rank_category
+ */
+enum rank_category get_rank_category(int rank);
 
-    /*
-     * Given an enum rank_category
-     * Returns a string description of the rank category, e.g. "Flush", "Full House"
-     */
-    const char* describe_rank_category(enum rank_category category);
+/*
+ * Given an enum rank_category
+ * Returns a string description of the rank category, e.g. "Flush", "Full House"
+ */
+const char* describe_rank_category(enum rank_category category);
 
-    /*
-     * Given a rank from 1 to 7462
-     * Returns a string description of the rank, e.g. "King-High Straight Flush"
-     */
-    const char* describe_rank(int rank);
+/*
+ * Given a rank from 1 to 7462
+ * Returns a string description of the rank, e.g. "King-High Straight Flush"
+ */
+const char* describe_rank(int rank);
 
-    /*
-     * Given a rank from 1 to 7462
-     * Returns a string description of a sample hand of the rank, e.g. "AKQJT"
-     */
-    const char* describe_sample_hand(int rank);
+/*
+ * Given a rank from 1 to 7462
+ * Returns a string description of a sample hand of the rank, e.g. "AKQJT"
+ */
+const char* describe_sample_hand(int rank);
 
-    /*
-     * Given a rank from 1 to 7462
-     * Returns whether the rank is a flush
-     */
-    bool is_flush(int rank);
+/*
+ * Given a rank from 1 to 7462
+ * Returns whether the rank is a flush
+ */
+bool is_flush(int rank);
 
 #ifdef __cplusplus
 } // closing brace for extern "C"
@@ -75,64 +75,64 @@ extern "C" {
 #include <vector>
 #include <array>
 #include <string>
-#include "card.cuh"
+#include "card.hpp"
 
 namespace phevaluator {
 
-    class Rank {
-    public:
-        int value() const { return value_; }
+class Rank {
+ public:
+  int value() const { return value_; }
 
-        bool operator<(const Rank& other) const {
-            return value_ >= other.value_;
-        }
+  bool operator<(const Rank& other) const {
+    return value_ >= other.value_;
+  }
 
-        bool operator<=(const Rank& other) const {
-            return value_ > other.value_;
-        }
+  bool operator<=(const Rank& other) const {
+    return value_ > other.value_;
+  }
 
-        bool operator>(const Rank& other) const {
-            return value_ <= other.value_;
-        }
+  bool operator>(const Rank& other) const {
+    return value_ <= other.value_;
+  }
 
-        bool operator>=(const Rank& other) const {
-            return value_ < other.value_;
-        }
+  bool operator>=(const Rank& other) const {
+    return value_ < other.value_;
+  }
 
-        bool operator==(const Rank& other) const {
-            return value_ == other.value_;
-        }
+  bool operator==(const Rank& other) const {
+    return value_ == other.value_;
+  }
 
-        bool operator!=(const Rank& other) const {
-            return value_ != other.value_;
-        }
+  bool operator!=(const Rank& other) const {
+    return value_ != other.value_;
+  }
 
-        enum rank_category category() const {
-            return get_rank_category(value_);
-        }
+  enum rank_category category() const {
+    return get_rank_category(value_);
+  }
 
-        std::string describeCategory() const {
-            return describe_rank_category(category());
-        }
+  std::string describeCategory() const {
+    return describe_rank_category(category());
+  }
 
-        std::string describeRank() const {
-            return describe_rank(value_);
-        }
+  std::string describeRank() const {
+    return describe_rank(value_);
+  }
 
-        std::string describeSampleHand() const {
-            return describe_sample_hand(value_);
-        }
+  std::string describeSampleHand() const {
+    return describe_sample_hand(value_);
+  }
 
-        bool isFlush() const {
-            return is_flush(value_);
-        }
+  bool isFlush() const {
+    return is_flush(value_);
+  }
 
-        Rank(int value) : value_(value) {}
-        Rank() {}
+  Rank(int value) : value_(value) {}
+  Rank() {}
 
-    private:
-        int value_ = 0;
-    };
+ private:
+  int value_ = 0;
+};
 
 } // namespace phevaluator
 

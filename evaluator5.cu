@@ -57,36 +57,37 @@ static short suitbit_by_id[52] = {
  * 13 * 4 gives 52 ids.
  */
 int evaluate_5cards(int a, int b, int c, int d, int e) {
-    int suit_hash = 0;
+  int suit_hash = 0;
 
-    suit_hash += suitbit_by_id[a];
-    suit_hash += suitbit_by_id[b];
-    suit_hash += suitbit_by_id[c];
-    suit_hash += suitbit_by_id[d];
-    suit_hash += suitbit_by_id[e];
+  suit_hash += suitbit_by_id[a];
+  suit_hash += suitbit_by_id[b];
+  suit_hash += suitbit_by_id[c];
+  suit_hash += suitbit_by_id[d];
+  suit_hash += suitbit_by_id[e];
 
-    if (suits[suit_hash])
-    {
-        int suit_binary[4] = { 0 };
+  if (suits[suit_hash])
+  {
+    int suit_binary[4] = {0};
 
-        suit_binary[a & 0x3] |= binaries_by_id[a];
-        suit_binary[b & 0x3] |= binaries_by_id[b];
-        suit_binary[c & 0x3] |= binaries_by_id[c];
-        suit_binary[d & 0x3] |= binaries_by_id[d];
-        suit_binary[e & 0x3] |= binaries_by_id[e];
+    suit_binary[a & 0x3] |= binaries_by_id[a];
+    suit_binary[b & 0x3] |= binaries_by_id[b];
+    suit_binary[c & 0x3] |= binaries_by_id[c];
+    suit_binary[d & 0x3] |= binaries_by_id[d];
+    suit_binary[e & 0x3] |= binaries_by_id[e];
 
-        return flush[suit_binary[suits[suit_hash] - 1]];
-    }
+    return flush[suit_binary[suits[suit_hash]-1]];
+  }
 
-    unsigned char quinary[13] = { 0 };
+  unsigned char quinary[13] = {0};
 
-    quinary[(a >> 2)]++;
-    quinary[(b >> 2)]++;
-    quinary[(c >> 2)]++;
-    quinary[(d >> 2)]++;
-    quinary[(e >> 2)]++;
+  quinary[(a >> 2)]++;
+  quinary[(b >> 2)]++;
+  quinary[(c >> 2)]++;
+  quinary[(d >> 2)]++;
+  quinary[(e >> 2)]++;
 
-    const int hash = hash_quinary(quinary, 5);
+  const int hash = hash_quinary(quinary, 5);
 
-    return noflush5[hash];
+  return noflush5[hash];
 }
+

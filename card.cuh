@@ -25,64 +25,64 @@
 #include <functional>
 
 namespace phevaluator {
-    const static std::unordered_map<char, int> rankMap = {
-      {'2', 0}, {'3', 1}, {'4', 2}, {'5', 3},
-      {'6', 4}, {'7', 5}, {'8', 6}, {'9', 7},
-      {'T', 8}, {'J', 9}, {'Q', 10}, {'K', 11}, {'A', 12},
-    };
-    const static std::unordered_map<char, int> suitMap = {
-      {'C', 0}, {'D', 1}, {'H', 2}, {'S', 3},
-      {'c', 0}, {'d', 1}, {'h', 2}, {'s', 3},
-    };
-    const static std::array<char, 13> rankReverseArray = {
-      '2', '3', '4', '5',
-      '6', '7', '8', '9',
-      'T', 'J', 'Q', 'K', 'A',
-    };
-    const static std::array<char, 4> suitReverseArray = { 'c', 'd', 'h', 's' };
+const static std::unordered_map<char, int> rankMap = {
+  {'2', 0}, {'3', 1}, {'4', 2}, {'5', 3},
+  {'6', 4}, {'7', 5}, {'8', 6}, {'9', 7},
+  {'T', 8}, {'J', 9}, {'Q', 10}, {'K', 11}, {'A', 12},
+};
+const static std::unordered_map<char, int> suitMap = {
+  {'C', 0}, {'D', 1}, {'H', 2}, {'S', 3},
+  {'c', 0}, {'d', 1}, {'h', 2}, {'s', 3},
+};
+const static std::array<char, 13> rankReverseArray = {
+  '2', '3', '4', '5',
+  '6', '7', '8', '9',
+  'T', 'J', 'Q', 'K', 'A',
+};
+const static std::array<char, 4> suitReverseArray = { 'c', 'd', 'h', 's' };
 
-    class Card {
-    public:
-        Card() {}
+class Card {
+public:
+  Card() {}
 
-        Card(int id) : id_(id) {}
+  Card(int id) : id_(id) {}
 
-        Card(std::string name) {
-            if (name.length() < 2) {
-                // TODO: throw an exception here
-            }
+  Card(std::string name) {
+    if (name.length() < 2) {
+      // TODO: throw an exception here
+    }
 
-            id_ = rankMap.at(name[0]) * 4 + suitMap.at(name[1]);
-        }
+    id_ = rankMap.at(name[0]) * 4 + suitMap.at(name[1]);
+  }
 
-        Card(const char name[]) : Card(std::string(name)) {}
+  Card(const char name[]) : Card(std::string(name)) {}
 
-        char describeRank(void) const { return rankReverseArray[id_ / 4]; }
+  char describeRank(void) const { return rankReverseArray[id_ / 4]; }
 
-        char describeSuit(void) const { return suitReverseArray[id_ % 4]; }
+  char describeSuit(void) const { return suitReverseArray[id_ % 4]; }
 
-        std::string describeCard(void) const {
-            return std::string{ describeRank(), describeSuit() };
-        }
+  std::string describeCard(void) const {
+    return std::string{ describeRank(), describeSuit() };
+  }
 
-        operator int() const { return id_; }
+  operator int() const { return id_; }
 
-        operator std::string() const { return describeCard(); }
+  operator std::string() const { return describeCard(); }
 
-    private:
-        int id_;
-    };
+private:
+  int id_;
+};
 
 } // namespace phevaluator
 
 
 namespace std {
-    template <>
-    struct hash<phevaluator::Card> {
-        size_t operator()(const phevaluator::Card& card) const {
-            return hash<int>()(int(card)); // usually identical to `return int(card)`
-        }
-    };
+template <>
+struct hash<phevaluator::Card> {
+  size_t operator()(const phevaluator::Card& card) const {
+    return hash<int>()(int(card)); // usually identical to `return int(card)`
+  }
+};
 } // namespace std
 
 #endif // __cplusplus

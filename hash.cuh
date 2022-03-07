@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-    int hash_quinary(const unsigned char q[], int k);
+int hash_quinary(const unsigned char q[], int k);
 
 #ifdef __cplusplus
 } //extern "C"
