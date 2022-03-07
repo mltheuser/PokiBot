@@ -127,10 +127,17 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
         vector<float> reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
 
         for (int j = 0; j < numChildren; j++) {
-            schablone->structureList->reachProbabilities.at(2 * children.at(j) + currentPlayer) = policy.at(j) * reachProbabilitiesLocal.at(currentPlayer);
-            schablone->structureList->reachProbabilities.at(2 * children.at(j) + otherPlayer) = reachProbabilitiesLocal.at(otherPlayer);
+            auto test = policy.at(j);
+            auto test2 = reachProbabilitiesLocal.at(currentPlayer);
+            auto test3 = children.at(j);
+
+
+            if (children.at(j) < numStateNodes) {
+                schablone->structureList->reachProbabilities.at(2 * children.at(j) + currentPlayer) = policy.at(j) * reachProbabilitiesLocal.at(currentPlayer);
+                schablone->structureList->reachProbabilities.at(2 * children.at(j) + otherPlayer) = reachProbabilitiesLocal.at(otherPlayer);
+            }
+              
         }
-        //free(trainingInitStruct->policy);
     }
 
     //d_1) backwardpass: setze regrets
@@ -175,7 +182,6 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
 
             cumulativeRegrets.at(j) = cumulativeRegrets.at(j) + std::max(0.f, counterRegrets[j]);
         }
-        //free(trainingInitStruct->policy);
     }
 
     //d_2) postpare strategie zur�ckschreiben
@@ -189,7 +195,5 @@ int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
             info.blueprintHandler->writePolicies(pos, size * sizeof(float), &schablone->cumulativeRegrets.at(player).at(info.startPointTemplate));
         }
     }
-
-    //util?
     return 0;
 }

@@ -35,17 +35,13 @@ std::unique_ptr<TrainingInitStruct> initTrainingInitStruct(Template* schablone, 
     int childrenWorklistPointer = schablone->structureList->childrenWorklistPointers.at(i);
 
     int currentPlayer = schablone->structureList->player0.at(i) ? 0 : 1;
-    //float* cummulativeRegrets = schablone->cumulativeRegrets.at(currentPlayer) + policyPointer;
-	std::vector<float> cummulativeRegrets = schablone->cummulativeRegrets.at(currentPlayer) + policyPointer;
-    //float* policy = (float*)malloc(sizeof(float) * numChildren);
-	std::vector<float> policy = new std::vector<float>(numChildren);
-    //std::memcpy(policy, cummulativeRegrets, numChildren * sizeof(float));
-	std::copy(policy.begin(),policy.end(),cummulativeRegrets.begin());
+	std::vector<float> cummulativeRegrets(schablone->cumulativeRegrets.at(currentPlayer).begin() + policyPointer, schablone->cumulativeRegrets.at(currentPlayer).begin() + policyPointer + numChildren);
+    std::vector<float> policy(cummulativeRegrets);
     normalizeStrategy(policy, numChildren);
 	//float* reachProbabilitiesLocal = schablone->structureList->reachProbabilities + (i* (size_t)2);
-    std::vector<float> reachProbabilitiesLocal = schablone->structureList->reachProbabilities.at(i*2);
+    std::vector<float> reachProbabilitiesLocal(schablone->structureList->reachProbabilities.begin() + i * 2, schablone->structureList->reachProbabilities.begin() + i * 2 + 2);
 	//int* children = schablone->structureList->worklist + childrenWorklistPointer;
-    std::vector<int> children = schablone->structureList->worklist.at(childrenWorklistPointer);
+    std::vector<int> children(schablone->structureList->worklist.begin() + childrenWorklistPointer, schablone->structureList->worklist.begin() + childrenWorklistPointer + numChildren);
     int otherPlayer = (currentPlayer + 1) % 2;
 
     vector<float> reachProbVector;
@@ -107,7 +103,7 @@ vector<string> mapCardsToVisibility(vector<string> cards, int player, int round)
 std::pair<int, GameState*> getCurrentNode(Template* schablone, std::vector<std::pair<char, float>> actionHistory) {
 
     // init with root
-    int currentNode = *(schablone->structureList->worklist);
+    int currentNode = schablone->structureList->worklist.at(0);
     GameState* currentGameState = new GameState();
 
     for (int i = 0; i < actionHistory.size(); i++) {
@@ -120,7 +116,7 @@ std::pair<int, GameState*> getCurrentNode(Template* schablone, std::vector<std::
 
         int index = it - possibleActions.begin();
 
-        int currentNodeIndex = *(schablone->structureList->childrenWorklistPointers + currentNode) + index;
+        int currentNodeIndex = schablone->structureList->childrenWorklistPointers.at(currentNode) + index;
 
         currentNode = schablone->structureList->worklist[currentNodeIndex];
 

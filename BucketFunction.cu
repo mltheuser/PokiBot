@@ -83,8 +83,7 @@ std::vector<char> BucketFunction::bucketCardsToNumbersNeglectStreetsAndFlushes(s
     }
     int maxSuit = std::max({ suitCount.at('c'),suitCount.at('s'),suitCount.at('h'),suitCount.at('d') });
 
-    std::vector<char> bucket;
-    bucket.reserve(size * (size_t)2);
+    std::vector<char> bucket(size * 2);
 
     std::string bucketString;
 

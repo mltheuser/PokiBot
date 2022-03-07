@@ -43,7 +43,7 @@ std::vector<float> BlueprintHandler::readPolicies(int pos, int size) {
 
     float* policies = (float*)buffer;
 
-    return std::vector<float>(policies, policies + size);
+    return std::vector<float>(policies, policies + (int)(size / sizeof(float)));
 }
 
 /**
