@@ -81,11 +81,13 @@
     <CudaCompile Include="BucketFunction.cu" />
     <CudaCompile Include="dptables.cu" />
     <CudaCompile Include="evaluator.cu" />
+    <CudaCompile Include="evaluator5.cu" />
     <CudaCompile Include="evaluator7.cu" />
     <CudaCompile Include="GameState.cu" />
     <CudaCompile Include="hand.cu" />
     <CudaCompile Include="hash.cu" />
     <CudaCompile Include="hashtable.cu" />
+    <CudaCompile Include="hashtable5.cu" />
     <CudaCompile Include="hashtable7.cu" />
     <CudaCompile Include="LeafNode.cu" />
     <CudaCompile Include="main.cu" />
@@ -104,6 +106,7 @@
     <ClInclude Include="card.cuh" />
     <ClInclude Include="Cards.cuh" />
     <ClInclude Include="evaluator.cuh" />
+    <ClInclude Include="evaluator5.cuh" />
     <ClInclude Include="evaluator7.cuh" />
     <ClInclude Include="GameState.cuh" />
     <ClInclude Include="hand.cuh" />

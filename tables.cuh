@@ -26,8 +26,6 @@ extern const unsigned char suits[4609];
 extern const unsigned int choose[53][10];
 extern const int dp[5][14][10];
 
-extern const char* rank_description[7463][2];
-
 extern const short noflush_omaha[11238500];
 extern const short flush_omaha[4099095];
 

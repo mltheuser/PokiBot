@@ -56,8 +56,8 @@ int TexasHoldemTrainer::trainSequentiell(int numIterations) {
 int TexasHoldemTrainer::train(vector<vector<string>>* playerCards) {
 
     //a) bestimme gewinner
-    int player0Eval = 1;
-    int player1Eval = 0;
+    int player0Eval = test7(playerCards->at(0));
+    int player1Eval = test7(playerCards->at(1));
 
     bool draw = player0Eval == player1Eval;
     bool playerWon = player0Eval > player1Eval;

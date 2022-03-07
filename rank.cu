@@ -46,14 +46,6 @@ const char* describe_rank_category(enum rank_category category) {
   return rank_category_description[category];
 }
 
-const char* describe_rank(int rank) {
-  return rank_description[rank][1];
-}
-
-const char* describe_sample_hand(int rank) {
-  return rank_description[rank][0];
-}
-
 bool is_flush(int rank) {
   switch(get_rank_category(rank)) {
   case STRAIGHT_FLUSH:

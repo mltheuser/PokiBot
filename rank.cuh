@@ -75,7 +75,7 @@ bool is_flush(int rank);
 #include <vector>
 #include <array>
 #include <string>
-#include "card.hpp"
+#include "card.cuh"
 
 namespace phevaluator {
 
