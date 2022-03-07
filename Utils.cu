@@ -6,46 +6,51 @@
 // std::default_random_engine engine = std::default_random_engine();
 std::default_random_engine engine;
 
-void normalizeStrategy(float* policy, int size) {
+void normalizeStrategy(std::vector<float> policy, int size) {
     for (int i = 0; i < size; i++) {
-        policy[i] = std::max(policy[i], 0.f);
+        policy.at(i) = std::max(policy.at(i), 0.f);
     }
 
     float arraySum = 0;
 
     for (int i = 0; i < size; i++) {
-        arraySum += policy[i];
+        arraySum += policy.at(i);
     }
 
     if (arraySum > 0) {
         for (int i = 0; i < size; i++) {
-            policy[i] /= arraySum;
+            policy.at(i) /= arraySum;
         }
     }
     else {
         for (int i = 0; i < size; i++) {
-            policy[i] = 1.f / size;
+            policy.at(i) = 1.f / size;
         }
     }
 }
 
 std::unique_ptr<TrainingInitStruct> initTrainingInitStruct(Template* schablone, int i) {
-    int policyPointer = schablone->structureList->policyPointers[i];
-    int numChildren = schablone->structureList->numChildren[i];
-    int childrenWorklistPointer = schablone->structureList->childrenWorklistPointers[i];
+    int policyPointer = schablone->structureList->policyPointers.at(i);
+    int numChildren = schablone->structureList->numChildren.at(i);
+    int childrenWorklistPointer = schablone->structureList->childrenWorklistPointers.at(i);
 
-    int currentPlayer = schablone->structureList->player0[i] ? 0 : 1;
-    float* cummulativeRegrets = schablone->cumulativeRegrets.at(currentPlayer) + policyPointer;
-    float* policy = (float*)malloc(sizeof(float) * numChildren);
-    std::memcpy(policy, cummulativeRegrets, numChildren * sizeof(float));
+    int currentPlayer = schablone->structureList->player0.at(i) ? 0 : 1;
+    //float* cummulativeRegrets = schablone->cumulativeRegrets.at(currentPlayer) + policyPointer;
+	std::vector<float> cummulativeRegrets = schablone->cummulativeRegrets.at(currentPlayer) + policyPointer;
+    //float* policy = (float*)malloc(sizeof(float) * numChildren);
+	std::vector<float> policy = new std::vector<float>(numChildren);
+    //std::memcpy(policy, cummulativeRegrets, numChildren * sizeof(float));
+	std::copy(policy.begin(),policy.end(),cummulativeRegrets.begin());
     normalizeStrategy(policy, numChildren);
-    float* reachProbabilitiesLocal = schablone->structureList->reachProbabilities + (i * (size_t)2);
-    int* children = schablone->structureList->worklist + childrenWorklistPointer;
+	//float* reachProbabilitiesLocal = schablone->structureList->reachProbabilities + (i* (size_t)2);
+    std::vector<float> reachProbabilitiesLocal = schablone->structureList->reachProbabilities.at(i*2);
+	//int* children = schablone->structureList->worklist + childrenWorklistPointer;
+    std::vector<int> children = schablone->structureList->worklist.at(childrenWorklistPointer);
     int otherPlayer = (currentPlayer + 1) % 2;
 
     vector<float> reachProbVector;
     for (int i = 0; i < schablone->structureList->numStateNodes * 2; i++) {
-        reachProbVector.push_back(schablone->structureList->reachProbabilities[i]);
+        reachProbVector.push_back(schablone->structureList->reachProbabilities.at(i));
     }
 
     TrainingInitStruct trainingInitStruct = TrainingInitStruct();
