@@ -79,11 +79,20 @@
   <ItemGroup>
     <CudaCompile Include="BlueprintHandler.cu" />
     <CudaCompile Include="BucketFunction.cu" />
+    <CudaCompile Include="dptables.cu" />
+    <CudaCompile Include="evaluator.cu" />
+    <CudaCompile Include="evaluator7.cu" />
     <CudaCompile Include="GameState.cu" />
+    <CudaCompile Include="hand.cu" />
+    <CudaCompile Include="hash.cu" />
+    <CudaCompile Include="hashtable.cu" />
+    <CudaCompile Include="hashtable7.cu" />
     <CudaCompile Include="LeafNode.cu" />
     <CudaCompile Include="main.cu" />
     <CudaCompile Include="RaiseBuckets.cu" />
+    <CudaCompile Include="rank.cu" />
     <CudaCompile Include="RoundPlayerInfo.cu" />
+    <CudaCompile Include="SolverA.cu" />
     <CudaCompile Include="StateNode.cu" />
     <CudaCompile Include="Template.cu" />
     <CudaCompile Include="Trainer.cu" />
@@ -92,14 +101,23 @@
   <ItemGroup>
     <ClInclude Include="BlueprintHandler.cuh" />
     <ClInclude Include="BucketFunction.cuh" />
+    <ClInclude Include="card.cuh" />
     <ClInclude Include="Cards.cuh" />
+    <ClInclude Include="evaluator.cuh" />
+    <ClInclude Include="evaluator7.cuh" />
     <ClInclude Include="GameState.cuh" />
+    <ClInclude Include="hand.cuh" />
+    <ClInclude Include="hash.cuh" />
     <ClInclude Include="LeafNode.cuh" />
     <ClInclude Include="Logger.cuh" />
     <ClInclude Include="Node.cuh" />
+    <ClInclude Include="phevaluator.cuh" />
     <ClInclude Include="RaiseBuckets.cuh" />
+    <ClInclude Include="rank.cuh" />
     <ClInclude Include="RoundPlayerInfo.cuh" />
+    <ClInclude Include="SolverA.cuh" />
     <ClInclude Include="StateNode.cuh" />
+    <ClInclude Include="tables.cuh" />
     <ClInclude Include="Template.cuh" />
     <ClInclude Include="Trainer.cuh" />
     <ClInclude Include="Utils.cuh" />

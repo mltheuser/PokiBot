@@ -4,6 +4,8 @@
 #include "Cards.cuh"
 #include "Utils.cuh"
 
+#include "SolverA.cuh"
+
 #include <random>
 #include <algorithm>
 #include <numeric>

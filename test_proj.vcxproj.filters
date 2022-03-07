@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CudaCompile Include="BlueprintHandler.cu" />
+    <CudaCompile Include="BucketFunction.cu" />
+    <CudaCompile Include="GameState.cu" />
+    <CudaCompile Include="LeafNode.cu" />
+    <CudaCompile Include="main.cu" />
+    <CudaCompile Include="RaiseBuckets.cu" />
+    <CudaCompile Include="RoundPlayerInfo.cu" />
+    <CudaCompile Include="StateNode.cu" />
+    <CudaCompile Include="Template.cu" />
+    <CudaCompile Include="Trainer.cu" />
+    <CudaCompile Include="Utils.cu" />
+    <CudaCompile Include="SolverA.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="dptables.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="evaluator.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="evaluator7.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="hand.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="hash.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="hashtable7.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="rank.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="hashtable.cu">
+      <Filter>SolverA\src</Filter>
+    </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BlueprintHandler.cuh" />
+    <ClInclude Include="BucketFunction.cuh" />
+    <ClInclude Include="Cards.cuh" />
+    <ClInclude Include="GameState.cuh" />
+    <ClInclude Include="LeafNode.cuh" />
+    <ClInclude Include="Logger.cuh" />
+    <ClInclude Include="Node.cuh" />
+    <ClInclude Include="RaiseBuckets.cuh" />
+    <ClInclude Include="RoundPlayerInfo.cuh" />
+    <ClInclude Include="StateNode.cuh" />
+    <ClInclude Include="Template.cuh" />
+    <ClInclude Include="Trainer.cuh" />
+    <ClInclude Include="Utils.cuh" />
+    <ClInclude Include="SolverA.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="card.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="evaluator.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="evaluator7.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="hand.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="hash.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="phevaluator.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="rank.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+    <ClInclude Include="tables.cuh">
+      <Filter>SolverA\include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="SolverA">
+      <UniqueIdentifier>{ccd25a7d-e8c0-4c9f-b9f6-7c3c0500e627}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SolverA\src">
+      <UniqueIdentifier>{330ad536-91a6-47bd-801f-f0a335e6f010}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SolverA\include">
+      <UniqueIdentifier>{36c16bd8-de1e-49a9-8408-a803843b9a62}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
