@@ -19,6 +19,19 @@ using std::vector;
 using std::string;
 using std::map;
 
+typedef struct {
+    float* dPayoff = nullptr;
+    //TODO
+    float* dReachProbabilities = nullptr;
+
+    float* dPots = nullptr;
+    bool* dFolded = nullptr;
+    bool* dPlayer0 = nullptr;
+    int* dNumStateNodes = nullptr;
+    bool* dPlayerWon = nullptr;
+    bool* dDraw = nullptr;
+} GpuMemoryPointers;
+
 class TexasHoldemTrainer {
 public:
     Template* schablone;
@@ -27,11 +40,16 @@ public:
     TexasHoldemTrainer(std::string path);
     ~TexasHoldemTrainer();
 
-    int train(vector<vector<string>>* playerCards);
+    int trainSequentiellIntern(vector<vector<string>>* playerCards);
     int trainSequentiell(int numIterations);
+    int trainGpuIntern(vector<vector<string>>* playerCards, GpuMemoryPointers* gpuMemoryPointers);
+    int trainGpu(int numIterations);
+    void saveBucketFunctions();
     float cfr(GameState gameState, vector<float> reachProbabilities);
     void sortCards(vector<string>& cards);
     void buildTree();
+    void allocateGpuMemory(GpuMemoryPointers* gpuMemoryPointers);
+    void cleanUpGpuMemory(GpuMemoryPointers* gpuMemoryPointers);
 };
 
 #endif

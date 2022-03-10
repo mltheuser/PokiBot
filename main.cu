@@ -9,20 +9,20 @@
 #include <cstdio>
 #include <vector>
 
-void clearFiles() {
-    std::remove("blueprint_buckets_0");
-    std::remove("blueprint_buckets_1");
-    std::remove("blueprint_buckets_2");
-    std::remove("blueprint_buckets_3");
+void clearFiles(std::string prefix) {
+    std::remove((std::string() + prefix + "_buckets_0").c_str());
+    std::remove((std::string() + prefix + "_buckets_1").c_str());
+    std::remove((std::string() + prefix + "_buckets_2").c_str());
+    std::remove((std::string() + prefix + "_buckets_3").c_str());
 
-    std::remove("blueprint00");
-    std::remove("blueprint01");
-    std::remove("blueprint10");
-    std::remove("blueprint11");
-    std::remove("blueprint20");
-    std::remove("blueprint21");
-    std::remove("blueprint30");
-    std::remove("blueprint31");
+    std::remove((std::string() + prefix + "_00").c_str());
+    std::remove((std::string() + prefix + "_01").c_str());
+    std::remove((std::string() + prefix + "_10").c_str());
+    std::remove((std::string() + prefix + "_11").c_str());
+    std::remove((std::string() + prefix + "_20").c_str());
+    std::remove((std::string() + prefix + "_21").c_str());
+    std::remove((std::string() + prefix + "_30").c_str());
+    std::remove((std::string() + prefix + "_31").c_str());
 }
 
 int main() {
@@ -34,7 +34,7 @@ int main() {
     int mode;
 
     while (running) {
-        std::cout << "What do you want to do? c(learfiles), t(rain), p(lay), e(xit) ";
+        std::cout << "What do you want to do? b(enchmark), c(learfiles), t(rain), p(lay), e(xit) ";
         std::cin >> action;
 
         if (action == 'e') {
@@ -47,7 +47,27 @@ int main() {
             std::cout << "Input number of iterations";
             std::cin >> iterations;
             TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
+            trainer.trainGpu(iterations);
+        }
+        else if (action == 'b') {
+            std::cout << "Input number of iterations";
+            std::cin >> iterations;
+            clock_t t1, t2;
+            clearFiles("benchmark");
+            {
+            TexasHoldemTrainer trainer = TexasHoldemTrainer("benchmark");
+            t1 = clock();
+            trainer.trainGpu(iterations);
+            t1 = clock() - t1;
+            clearFiles("benchmark");
+            }
+            {
+            TexasHoldemTrainer trainer = TexasHoldemTrainer("benchmark");
+            t2 = clock();
             trainer.trainSequentiell(iterations);
+            }
+            t2 = clock() - t2;
+            std::cout << "gpu: " << t1 << " sequentiell: " << t2 << std::endl;
         } else {
             std::cout << "Ungültige Eingaben";
         }

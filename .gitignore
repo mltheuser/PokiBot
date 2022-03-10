@@ -1,0 +1,6 @@
+blueprint*
+benchmark*
+x64/*
+.vs/*
+test_proj.vcxproj
+test_proj.vcxproj
