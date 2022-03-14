@@ -19,18 +19,32 @@ using std::vector;
 using std::string;
 using std::map;
 
-typedef struct {
-    float* dPayoff = nullptr;
-    //TODO
-    float* dReachProbabilities = nullptr;
+struct DeviceStructureList {
+    DeviceStructureList* Dself = nullptr;
 
-    float* dPots = nullptr;
-    bool* dFolded = nullptr;
-    bool* dPlayer0 = nullptr;
-    int* dNumStateNodes = nullptr;
-    bool* dPlayerWon = nullptr;
-    bool* dDraw = nullptr;
-} GpuMemoryPointers;
+    int* childrenWorklistPointers = nullptr;
+    bool* folded = nullptr;
+    int* numStateNodes = nullptr;
+    int* numLeafNodes = nullptr;
+    int* numChildren = nullptr;
+    float* payoff = nullptr;
+    bool* player0 = nullptr;
+    int* policyPointers = nullptr;
+    float* pots = nullptr;
+    float* reachProbabilities = nullptr;
+    int* worklist = nullptr;
+
+    bool* playerWon = nullptr;
+    bool* draw = nullptr;
+
+    int* levelStart = nullptr;
+    int* numElements = nullptr;
+
+    float* cumulativeRegrets0;
+    float* cumulativeRegrets1;
+    float* policy0;
+    float* policy1;
+};
 
 class TexasHoldemTrainer {
 public:
@@ -40,16 +54,12 @@ public:
     TexasHoldemTrainer(std::string path);
     ~TexasHoldemTrainer();
 
-    int trainSequentiellIntern(vector<vector<string>>* playerCards);
-    int trainSequentiell(int numIterations);
-    int trainGpuIntern(vector<vector<string>>* playerCards, GpuMemoryPointers* gpuMemoryPointers);
-    int trainGpu(int numIterations);
-    void saveBucketFunctions();
+    int trainCPU(vector<vector<string>>* playerCards);
+    int trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
+    int trainSequentiell(int numIterations, bool useGpu = true);
     float cfr(GameState gameState, vector<float> reachProbabilities);
     void sortCards(vector<string>& cards);
     void buildTree();
-    void allocateGpuMemory(GpuMemoryPointers* gpuMemoryPointers);
-    void cleanUpGpuMemory(GpuMemoryPointers* gpuMemoryPointers);
 };
 
 #endif

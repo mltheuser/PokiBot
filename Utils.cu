@@ -29,7 +29,7 @@ void normalizeStrategy(float* policy, int size) {
     }
 }
 
-std::unique_ptr<TrainingInitStruct> initTrainingInitStruct(Template* schablone, int i) {
+TrainingInitStruct* initTrainingInitStruct(Template* schablone, int i) {
     int policyPointer = schablone->structureList->policyPointers[i];
     int numChildren = schablone->structureList->numChildren[i];
     int childrenWorklistPointer = schablone->structureList->childrenWorklistPointers[i];
@@ -43,24 +43,19 @@ std::unique_ptr<TrainingInitStruct> initTrainingInitStruct(Template* schablone, 
     int* children = schablone->structureList->worklist + childrenWorklistPointer;
     int otherPlayer = (currentPlayer + 1) % 2;
 
-    vector<float> reachProbVector;
-    for (int i = 0; i < schablone->structureList->numStateNodes * 2; i++) {
-        reachProbVector.push_back(schablone->structureList->reachProbabilities[i]);
-    }
+    auto trainingInitStruct = new TrainingInitStruct();
 
-    TrainingInitStruct trainingInitStruct = TrainingInitStruct();
+    trainingInitStruct->policyPointer = policyPointer;
+    trainingInitStruct->numChildren = numChildren;
+    trainingInitStruct->childrenWorklistPointer = childrenWorklistPointer;
+    trainingInitStruct->currentPlayer = currentPlayer;
+    trainingInitStruct->cumulativeRegrets = cummulativeRegrets;
+    trainingInitStruct->policy = policy;
+    trainingInitStruct->reachProbabilitiesLocal = reachProbabilitiesLocal;
+    trainingInitStruct->children = children;
+    trainingInitStruct->otherPlayer = otherPlayer;
 
-    trainingInitStruct.policyPointer = policyPointer;
-    trainingInitStruct.numChildren = numChildren;
-    trainingInitStruct.childrenWorklistPointer = childrenWorklistPointer;
-    trainingInitStruct.currentPlayer = currentPlayer;
-    trainingInitStruct.cumulativeRegrets = cummulativeRegrets;
-    trainingInitStruct.policy = policy;
-    trainingInitStruct.reachProbabilitiesLocal = reachProbabilitiesLocal;
-    trainingInitStruct.children = children;
-    trainingInitStruct.otherPlayer = otherPlayer;
-
-    return std::make_unique<TrainingInitStruct>(trainingInitStruct);
+    return trainingInitStruct;
 }
 
 bool roundEnd(vector<char> history, char action) {

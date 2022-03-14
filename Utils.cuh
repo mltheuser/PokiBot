@@ -20,7 +20,7 @@ typedef struct trainingInitStruct {
 } TrainingInitStruct;
 
 void normalizeStrategy(float* policy, int size);
-std::unique_ptr<TrainingInitStruct> initTrainingInitStruct(Template* schablone, int i);
+TrainingInitStruct* initTrainingInitStruct(Template* schablone, int i);
 bool roundEnd(vector<char> history, char action);
 bool roundEnd(vector<pair<char, float>> history, pair<char, float> action);
 vector<string> getCards();
