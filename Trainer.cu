@@ -20,7 +20,7 @@
 
 #include <stdio.h>
 
-#define BLOCKSIZE 32
+#define BLOCKSIZE 512
 
 TexasHoldemTrainer::~TexasHoldemTrainer() {
     delete schablone;
@@ -534,7 +534,9 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
     cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
     int blockSize = BLOCKSIZE;
     int numBlocks = (N + blockSize - 1) / blockSize;
-    setLeafPayoffs << < blockSize, numBlocks >> > (dsl->Dself);
+    setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
 
     //c_1) prepare strategie laden
     for (int round = 0; round < 4; round++) {
@@ -595,7 +597,9 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
         cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
         int blockSize = BLOCKSIZE;
         int numBlocks = (N + blockSize - 1) / blockSize;
-        setReachProbsAndPolicy << < blockSize, numBlocks >> > (dsl->Dself);
+        setReachProbsAndPolicy << < numBlocks, blockSize >> > (dsl->Dself);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
 
         cudaDeviceSynchronize();
     }
@@ -611,7 +615,9 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
         cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
         int blockSize = BLOCKSIZE;
         int numBlocks = (N + blockSize - 1) / blockSize;
-        setRegrets << < blockSize, numBlocks >> > (dsl->Dself);
+        setRegrets << < numBlocks, blockSize >> > (dsl->Dself);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
 
         cudaDeviceSynchronize();
     }
