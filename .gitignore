@@ -1,4 +1,8 @@
 blueprint*
+!BlueprintAkteur.cu
+!BlueprintAkteur.cuh
+!BlueprintHandler.cu
+!BlueprintHandler.cuh
 benchmark*
 x64/*
 .vs/*
