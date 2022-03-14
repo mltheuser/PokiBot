@@ -13,26 +13,26 @@ using std::vector;
 using std::pair;
 
 typedef struct {
-    vector<int> childrenWorklistPointers;
-    vector<bool> folded;
+    int* childrenWorklistPointers = nullptr;
+    bool* folded = nullptr;
     vector<int> levelPointers;
     int numStateNodes = 0;
     int numLeafNodes = 0;
-    vector<int> numChildren;
-    vector<float> payoff;
-    vector<bool> player0;
-    vector<int> policyPointers;
-    vector<float> pots;
-    vector<float> reachProbabilities;
-    vector<int> worklist;
+    int* numChildren = nullptr;
+    float* payoff = nullptr;
+    bool* player0 = nullptr;
+    int* policyPointers = nullptr;
+    float* pots = nullptr;
+    float* reachProbabilities = nullptr;
+    int* worklist = nullptr;
 } StructureList;
 
 struct BuildTreeReturnType {
-    vector<int> worklist;
+    int* worklist;
     int worklistLength;
-    vector<StateNode> stateWorklist;
+    StateNode* stateWorklist;
     int stateWorklistLength;
-    vector<LeafNode> leafWorklist;
+    LeafNode* leafWorklist;
     vector<vector<int>> roundPlayerActionCounts;
 };
 
@@ -53,10 +53,10 @@ public:
     //4 x 2
     vector<vector<RoundPlayerInfo>> roundInfos;
     StructureList* structureList;
-    vector<vector<float>> cumulativeRegrets;
+    vector<float*> cumulativeRegrets;
 
     ~Template();
-    Template(StructureList* structureList, vector<vector<RoundPlayerInfo>> roundInfos, vector<vector<float>> cumulativeRegrets);
+    Template(StructureList* structureList, vector<vector<RoundPlayerInfo>> roundInfos, vector<float*> cumulativeRegrets);
     Template(Template* schablone);
 
     static void createBucketFunctions(std::string path, vector<BucketFunction*>* bucketFunctions);

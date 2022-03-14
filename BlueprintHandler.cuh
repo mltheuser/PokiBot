@@ -18,7 +18,7 @@ public:
 
     bool blueprintExists(std::string path);
     void createBlueprint(std::string path);
-    std::vector<float> readPolicies(int pos, int size);
+    float* readPolicies(int pos, int size);
     void writePolicies(int pos, int size, float* policies);
 };
 

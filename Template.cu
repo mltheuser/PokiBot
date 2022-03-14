@@ -15,11 +15,25 @@ Template::~Template() {
         delete roundInfos.at(round).at(0).bucketFunction;
     }
 
+    delete[] structureList->payoff;
+    delete[] structureList->player0;
+    delete[] structureList->numChildren;
+    delete[] structureList->policyPointers;
+    delete[] structureList->childrenWorklistPointers;
+    delete[] structureList->reachProbabilities;
+    delete[] structureList->pots;
+    delete[] structureList->folded;
+
+    free(structureList->worklist);
+
     delete structureList;
 
+    for (int i = 0; i < cumulativeRegrets.size(); i++) {
+        free(cumulativeRegrets.at(i));
+    }
 }
 
-Template::Template(StructureList* structureList, vector<vector<RoundPlayerInfo>> roundInfos, vector<vector<float>> cumulativeRegrets) {
+Template::Template(StructureList* structureList, vector<vector<RoundPlayerInfo>> roundInfos, vector<float*> cumulativeRegrets) {
     this->roundInfos = roundInfos;
     this->structureList = structureList;
     this->cumulativeRegrets = cumulativeRegrets;
@@ -107,10 +121,10 @@ struct BuildTreeReturnType Template::buildTree() {
     int stateNodesSize = stateNodes.size();
     int leafNodesSize = leafNodes.size();
     int worklistSize = stateNodesSize + leafNodesSize;
-    auto stateWorklist = vector<StateNode>(stateNodesSize);;
-    auto leafWorklist = vector<LeafNode>(leafNodesSize);
+    auto stateWorklist = new StateNode[stateNodesSize];
+    LeafNode* leafWorklist = new LeafNode[leafNodesSize];
 
-    auto worklist = vector<int>(worklistSize);
+    int* worklist = (int*)malloc((worklistSize) * sizeof(int));
 
     for (int i = 0; i < worklistSize; i++) {
         nodeInformation = nodeInformations.at(i);
@@ -173,12 +187,12 @@ static void reduceRoundPlayerActionCounts(vector<vector<int>>* roundPlayerAction
 }
 
 //backwardPass durch worklist
-static void worklistBackwardPass(vector<vector<float>>* cumulativeRegrets, vector<int>* worklist, int worklistLength, vector<StateNode>* stateWorklist, int stateWorklistLength, vector<vector<int>>* roundPlayerActionCounts) {
+static void worklistBackwardPass(vector<float*>* cumulativeRegrets, int* worklist, int worklistLength, StateNode* stateWorklist, int stateWorklistLength, vector<vector<int>>* roundPlayerActionCounts) {
     int playerActionCounts[2] = { 0,0 };
     reduceRoundPlayerActionCounts(roundPlayerActionCounts, playerActionCounts);
 
-    vector<float> player0CumulativeRegrets = vector<float>(playerActionCounts[0]);
-    vector<float> player1CumulativeRegrets = vector<float>(playerActionCounts[1]);
+    float* player0CumulativeRegrets = (float*)malloc(playerActionCounts[0] * sizeof(float));
+    float* player1CumulativeRegrets = (float*)malloc(playerActionCounts[1] * sizeof(float));
 
     cumulativeRegrets->push_back(player0CumulativeRegrets);
     cumulativeRegrets->push_back(player1CumulativeRegrets);
@@ -186,9 +200,9 @@ static void worklistBackwardPass(vector<vector<float>>* cumulativeRegrets, vecto
     int templatePointers[2] = { 0, 0 };
 
     for (int i = worklistLength - 1; i >= 0; i--) {
-        int worklistPointer = worklist->at(i);
+        int worklistPointer = worklist[i];
         if (worklistPointer < stateWorklistLength) {
-            StateNode* stateNode = &stateWorklist->at(worklistPointer);
+            StateNode* stateNode = &stateWorklist[worklistPointer];
             stateNode->policyPointer = playerActionCounts[stateNode->player0 ? 0 : 1] - (templatePointers[stateNode->player0 ? 0 : 1] + stateNode->children.size());
             templatePointers[stateNode->player0 ? 0 : 1] += stateNode->children.size();
         }
@@ -200,17 +214,17 @@ StructureList* treeToLists(struct BuildTreeReturnType* tree) {
     int numLeafNodes = tree->worklistLength - numStateNodes;
     int numNodes = numStateNodes + numLeafNodes;
 
-    std::vector<int> worklist = tree->worklist;
-    auto payoff = vector<float>(numNodes);
-    auto player0 = vector<bool>(numNodes);
+    int* worklist = tree->worklist;
+    float* payoff = new float[numNodes];
+    bool* player0 = new bool[numNodes];
 
-    auto numChildren = vector<int>(numStateNodes);
-    auto policyPointers = vector<int>(numStateNodes);
-    auto childrenWorklistPointers = vector<int>(numStateNodes);
-    auto reachProbabilities = vector<float>(2 * numStateNodes);
+    int* numChildren = new int[numStateNodes];
+    int* policyPointers = new int[numStateNodes];
+    int* childrenWorklistPointers = new int[numStateNodes];
+    float* reachProbabilities = new float[(size_t)2 * numStateNodes];
 
-    auto pots = vector<float>(2 * numLeafNodes);
-    auto folded = vector<bool>(numLeafNodes);
+    float* pots = new float[(size_t)2 * numLeafNodes];
+    bool* folded = new bool[numLeafNodes];
 
     for (int i = 0; i < numStateNodes; i++) {
         StateNode* stateNode = &tree->stateWorklist[i];
@@ -265,6 +279,9 @@ StructureList* treeToLists(struct BuildTreeReturnType* tree) {
         }
     }
 
+    delete[] tree->stateWorklist;
+    delete[] tree->leafWorklist;
+
     //TODO wie kann man den Konstruktor direkt mit Parametern aufrufen?
     StructureList* structureList = new StructureList();
     structureList->childrenWorklistPointers = childrenWorklistPointers;
@@ -289,9 +306,9 @@ Template* Template::createDefaultTemplate(std::string path) {
     struct BuildTreeReturnType tree = buildTree();
     vector<vector<RoundPlayerInfo>> roundPlayerInfos = buildRoundPlayerInfos(&bucketFunctions, &tree.roundPlayerActionCounts);
 
-    vector<vector<float>> cumulativeRegrets;
+    vector<float*> cumulativeRegrets;
 
-    worklistBackwardPass(&cumulativeRegrets, &tree.worklist, tree.worklistLength, &tree.stateWorklist, tree.stateWorklistLength, &tree.roundPlayerActionCounts);
+    worklistBackwardPass(&cumulativeRegrets, tree.worklist, tree.worklistLength, tree.stateWorklist, tree.stateWorklistLength, &tree.roundPlayerActionCounts);
 
     StructureList* listCollection = treeToLists(&tree);
 

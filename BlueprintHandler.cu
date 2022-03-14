@@ -32,7 +32,7 @@ void BlueprintHandler::createBlueprint(std::string path) {
 }
 
 
-std::vector<float> BlueprintHandler::readPolicies(int pos, int size) {
+float* BlueprintHandler::readPolicies(int pos, int size) {
     if (!ifStream.is_open()) {
         std::cout << "Input stream nicht mehr offen!" << std::endl;
     }
@@ -43,7 +43,7 @@ std::vector<float> BlueprintHandler::readPolicies(int pos, int size) {
 
     float* policies = (float*)buffer;
 
-    return std::vector<float>(policies, policies + (int)(size / sizeof(float)));
+    return policies;
 }
 
 /**
