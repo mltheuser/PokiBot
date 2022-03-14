@@ -34,7 +34,7 @@ int main() {
     bool running = true;
     char action;
     int iterations;
-    int device;
+    char device;
     clock_t init, train;
 
     while (running) {
@@ -62,27 +62,27 @@ int main() {
             }
         }
         else if (action == 't') {
-            std::cout << "device: cpu(0), gpu(1)";
+            std::cout << "device: (c)pu, (g)pu: ";
             std::cin >> device;
-            if (device == '0') {
-                std::cout << "Input number of iterations";
+            if (device == 'c') {
+                std::cout << "Input number of iterations: ";
                 std::cin >> iterations;
                 init = clock();
                 TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
                 init = clock() - init;
                 trainer.trainSequentiell(iterations, false);
                 train = clock() - init;
-                std::cout << "init: " << init << " train " << iterations << " iterations: " << train << " (" << train/iterations << " pro iteration" << std::endl;
+                std::cout << "init: " << init << " train " << iterations << " iterations: " << train << " (" << train / static_cast<double>(iterations) << " pro iteration)" << std::endl;
             }
             else {
-                std::cout << "Input number of iterations";
+                std::cout << "Input number of iterations: ";
                 std::cin >> iterations;
                 init = clock();
                 TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
                 init = clock() - init;
                 trainer.trainSequentiell(iterations, true);
                 train = clock() - init;
-                std::cout << "init: " << init << " train " << iterations << " iterations: " << train << " (" << train / iterations << " pro iteration" << std::endl;
+                std::cout << "init: " << init << " train " << iterations << " iterations: " << train << " (" << train / static_cast<double>(iterations) << " pro iteration)" << std::endl;
             }
             
         } else if (action == 'p') {

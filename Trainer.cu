@@ -20,6 +20,8 @@
 
 #include <stdio.h>
 
+#define BLOCKSIZE 32
+
 TexasHoldemTrainer::~TexasHoldemTrainer() {
     delete schablone;
 }
@@ -530,7 +532,7 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
 
     int N = numLeafNodes;
     cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
-    int blockSize = 256;
+    int blockSize = BLOCKSIZE;
     int numBlocks = (N + blockSize - 1) / blockSize;
     setLeafPayoffs << < blockSize, numBlocks >> > (dsl->Dself);
 
@@ -591,7 +593,7 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
 
         int N = numElements;
         cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
-        int blockSize = 256;
+        int blockSize = BLOCKSIZE;
         int numBlocks = (N + blockSize - 1) / blockSize;
         setReachProbsAndPolicy << < blockSize, numBlocks >> > (dsl->Dself);
 
@@ -607,7 +609,7 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
 
         int N = numElements;
         cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
-        int blockSize = 256;
+        int blockSize = BLOCKSIZE;
         int numBlocks = (N + blockSize - 1) / blockSize;
         setRegrets << < blockSize, numBlocks >> > (dsl->Dself);
 
