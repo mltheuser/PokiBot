@@ -12,15 +12,15 @@ typedef struct trainingInitStruct {
     int numChildren;
     int childrenWorklistPointer;
     int currentPlayer;
-    std::vector<float> policy;
-    std::vector<float> cumulativeRegrets;
-    std::vector<float> reachProbabilitiesLocal;
-    std::vector<int> children;
+    float* policy;
+    float* cumulativeRegrets;
+    float* reachProbabilitiesLocal;
+    int* children;
     int otherPlayer;
 } TrainingInitStruct;
 
-void normalizeStrategy(std::vector<float> policy, int size);
-std::unique_ptr<TrainingInitStruct> initTrainingInitStruct(Template* schablone, int i);
+void normalizeStrategy(float* policy, int size);
+TrainingInitStruct* initTrainingInitStruct(Template* schablone, int i);
 bool roundEnd(vector<char> history, char action);
 bool roundEnd(vector<pair<char, float>> history, pair<char, float> action);
 vector<string> getCards();

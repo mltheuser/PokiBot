@@ -1,0 +1,10 @@
+blueprint*
+!BlueprintAkteur.cu
+!BlueprintAkteur.cuh
+!BlueprintHandler.cu
+!BlueprintHandler.cuh
+benchmark*
+x64/*
+.vs/*
+test_proj.vcxproj
+test_proj.vcxproj
