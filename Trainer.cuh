@@ -56,7 +56,7 @@ public:
 
     int trainCPU(vector<vector<string>>* playerCards);
     int trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
-    int trainSequentiell(int numIterations, bool useGpu = true);
+    int trainSequentiell(int numIterations, bool useGpu);
     float cfr(GameState gameState, vector<float> reachProbabilities);
     void sortCards(vector<string>& cards);
     void buildTree();

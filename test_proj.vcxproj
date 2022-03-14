@@ -30,7 +30,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.5.props" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.6.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -77,12 +77,14 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <CudaCompile Include="BlueprintAkteur.cu" />
     <CudaCompile Include="BlueprintHandler.cu" />
     <CudaCompile Include="BucketFunction.cu" />
     <CudaCompile Include="dptables.cu" />
     <CudaCompile Include="evaluator.cu" />
     <CudaCompile Include="evaluator5.cu" />
     <CudaCompile Include="evaluator7.cu" />
+    <CudaCompile Include="GameMaster.cu" />
     <CudaCompile Include="GameState.cu" />
     <CudaCompile Include="hand.cu" />
     <CudaCompile Include="hash.cu" />
@@ -92,6 +94,7 @@
     <CudaCompile Include="LeafNode.cu" />
     <CudaCompile Include="main.cu" />
     <CudaCompile Include="RaiseBuckets.cu" />
+    <CudaCompile Include="RandomAkteur.cu" />
     <CudaCompile Include="rank.cu" />
     <CudaCompile Include="RoundPlayerInfo.cu" />
     <CudaCompile Include="SolverA.cu" />
@@ -101,6 +104,8 @@
     <CudaCompile Include="Utils.cu" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Akteur.cuh" />
+    <ClInclude Include="BlueprintAkteur.cuh" />
     <ClInclude Include="BlueprintHandler.cuh" />
     <ClInclude Include="BucketFunction.cuh" />
     <ClInclude Include="card.cuh" />
@@ -108,6 +113,7 @@
     <ClInclude Include="evaluator.cuh" />
     <ClInclude Include="evaluator5.cuh" />
     <ClInclude Include="evaluator7.cuh" />
+    <ClInclude Include="GameMaster.cuh" />
     <ClInclude Include="GameState.cuh" />
     <ClInclude Include="hand.cuh" />
     <ClInclude Include="hash.cuh" />
@@ -116,6 +122,7 @@
     <ClInclude Include="Node.cuh" />
     <ClInclude Include="phevaluator.cuh" />
     <ClInclude Include="RaiseBuckets.cuh" />
+    <ClInclude Include="RandomAkteur.cuh" />
     <ClInclude Include="rank.cuh" />
     <ClInclude Include="RoundPlayerInfo.cuh" />
     <ClInclude Include="SolverA.cuh" />
@@ -127,6 +134,6 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.5.targets" />
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.6.targets" />
   </ImportGroup>
 </Project>

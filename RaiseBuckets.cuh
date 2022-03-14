@@ -5,6 +5,7 @@
 #include <tuple>
 #include <algorithm>
 
+//require aufsteigend sortiert
 const std::vector<float> raiseSizes = { 1 };
 
 std::vector<std::pair<char, float>> getRaises();

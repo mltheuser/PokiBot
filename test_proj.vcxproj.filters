@@ -45,6 +45,9 @@
     <CudaCompile Include="hashtable5.cu">
       <Filter>SolverA\src</Filter>
     </CudaCompile>
+    <CudaCompile Include="GameMaster.cu" />
+    <CudaCompile Include="RandomAkteur.cu" />
+    <CudaCompile Include="BlueprintAkteur.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BlueprintHandler.cuh" />
@@ -90,6 +93,10 @@
     <ClInclude Include="evaluator5.cuh">
       <Filter>SolverA\include</Filter>
     </ClInclude>
+    <ClInclude Include="GameMaster.cuh" />
+    <ClInclude Include="RandomAkteur.cuh" />
+    <ClInclude Include="BlueprintAkteur.cuh" />
+    <ClInclude Include="Akteur.cuh" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="SolverA">
