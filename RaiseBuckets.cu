@@ -13,28 +13,15 @@ std::vector<std::pair<char, float>> getRaises() {
 }
 
 float getRaise(float raise) {
-    if (raiseSizes.size() == 0) {
-        throw std::invalid_argument("getRaise is empty");
-    }
-    else if (raiseSizes.size() == 1) {
-        return raiseSizes[0];
-    } else {
+    if (raiseSizes.size() == 0) throw std::invalid_argument("getRaise is empty");
 
-        //steht zwar lower, c++ ist aber dumm
-        std::vector<float>::const_iterator upper = std::lower_bound(raiseSizes.begin(), raiseSizes.end(), raise);
+    std::vector<float>::const_iterator firstElementGreaterOrEquals = std::lower_bound(raiseSizes.begin(), raiseSizes.end(), raise);
+    
+    //falls keins gefunden -> firstElementGreaterOrEquals == raiseSizes.end()
+    if (firstElementGreaterOrEquals == raiseSizes.end()) return raiseSizes.back();
 
-        if (upper == raiseSizes.begin()) {
-            return *upper;
-        }
-        else {
-            std::vector<float>::const_iterator lower = upper - 1;
+    //falls es das erste ist -> firstElementGreaterOrEquals == raiseSizes.begin()
+    if (firstElementGreaterOrEquals == raiseSizes.begin()) return raiseSizes.front();
 
-            if (*upper - raise < raise - *lower) {
-                return *upper;
-            }
-            else {
-                return *lower;
-            }
-        }
-    }
+    return *firstElementGreaterOrEquals - raise < raise - *(firstElementGreaterOrEquals - 1) ? *firstElementGreaterOrEquals : *(firstElementGreaterOrEquals - 1);
 }
