@@ -1,5 +1,4 @@
 #include "RaiseBuckets.cuh"
-#include <stdexcept>
 
 std::vector<std::pair<char, float>> getRaises() {
     std::vector<std::pair<char, float>> raisePairs;
@@ -13,15 +12,14 @@ std::vector<std::pair<char, float>> getRaises() {
 }
 
 float getRaise(float raise) {
-    if (raiseSizes.size() == 0) throw std::invalid_argument("getRaise is empty");
+    //steht zwar lower, c++ ist aber dumm
+    std::vector<float>::const_iterator upper = std::lower_bound(raiseSizes.begin(), raiseSizes.end(), raise);
+    std::vector<float>::const_iterator lower = upper - 1;
 
-    std::vector<float>::const_iterator firstElementGreaterOrEquals = std::lower_bound(raiseSizes.begin(), raiseSizes.end(), raise);
-    
-    //falls keins gefunden -> firstElementGreaterOrEquals == raiseSizes.end()
-    if (firstElementGreaterOrEquals == raiseSizes.end()) return raiseSizes.back();
-
-    //falls es das erste ist -> firstElementGreaterOrEquals == raiseSizes.begin()
-    if (firstElementGreaterOrEquals == raiseSizes.begin()) return raiseSizes.front();
-
-    return *firstElementGreaterOrEquals - raise < raise - *(firstElementGreaterOrEquals - 1) ? *firstElementGreaterOrEquals : *(firstElementGreaterOrEquals - 1);
+    if (*upper - raise < raise - *lower) {
+        return *upper;
+    }
+    else {
+        return *lower;
+    }
 }

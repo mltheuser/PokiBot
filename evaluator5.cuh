@@ -1,1 +1,0 @@
-int evaluate_5cards(int a, int b, int c, int d, int e);

@@ -19,33 +19,6 @@ using std::vector;
 using std::string;
 using std::map;
 
-struct DeviceStructureList {
-    DeviceStructureList* Dself = nullptr;
-
-    int* childrenWorklistPointers = nullptr;
-    bool* folded = nullptr;
-    int* numStateNodes = nullptr;
-    int* numLeafNodes = nullptr;
-    int* numChildren = nullptr;
-    float* payoff = nullptr;
-    bool* player0 = nullptr;
-    int* policyPointers = nullptr;
-    float* pots = nullptr;
-    float* reachProbabilities = nullptr;
-    int* worklist = nullptr;
-
-    bool* playerWon = nullptr;
-    bool* draw = nullptr;
-
-    int* levelStart = nullptr;
-    int* numElements = nullptr;
-
-    float* cumulativeRegrets0;
-    float* cumulativeRegrets1;
-    float* policy0;
-    float* policy1;
-};
-
 class TexasHoldemTrainer {
 public:
     Template* schablone;
@@ -54,9 +27,8 @@ public:
     TexasHoldemTrainer(std::string path);
     ~TexasHoldemTrainer();
 
-    int trainCPU(vector<vector<string>>* playerCards);
-    int trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
-    int trainSequentiell(int numIterations, bool useGpu);
+    int train(vector<vector<string>>* playerCards);
+    int trainSequentiell(int numIterations);
     float cfr(GameState gameState, vector<float> reachProbabilities);
     void sortCards(vector<string>& cards);
     void buildTree();
