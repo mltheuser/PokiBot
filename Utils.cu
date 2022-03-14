@@ -3,7 +3,6 @@
 #include <cstring>
 #include "RaiseBuckets.cuh"
 
-// std::default_random_engine engine = std::default_random_engine();
 std::default_random_engine engine;
 
 void normalizeStrategy(float* policy, int size) {

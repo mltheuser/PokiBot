@@ -82,7 +82,7 @@ DeviceStructureList* prepareDevice(Template* schablone) {
     gpuErrchk(cudaMalloc((void**)&dsl->policyPointers, size));
     gpuErrchk(cudaMemcpy(dsl->policyPointers, schablone->structureList->policyPointers, size, cudaMemcpyHostToDevice));
 
-    size = sizeof(float) * numLeafNodes;
+    size = sizeof(float) * numLeafNodes * 2;
     gpuErrchk(cudaMalloc((void**)&dsl->pots, size));
     gpuErrchk(cudaMemcpy(dsl->pots, schablone->structureList->pots, size, cudaMemcpyHostToDevice));
 
