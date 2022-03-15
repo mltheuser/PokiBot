@@ -150,9 +150,8 @@ void freeDeviceStructureList(DeviceStructureList* dsl) {
 }
 
 
-int TexasHoldemTrainer::trainSequentiell(int numIterations, bool useGpu) {
+void TexasHoldemTrainer::trainSequentiell(int numIterations, bool useGpu) {
     Logger::logToConsole("Training start");
-    int util = 0;
     vector<string> cards;
     cards.reserve(52);
     vector<string> player0Cards;
@@ -176,10 +175,10 @@ int TexasHoldemTrainer::trainSequentiell(int numIterations, bool useGpu) {
         }
         
         if (useGpu) {
-            util += trainGPU(&playerCards, deviceStructureListPtr);
+            trainGPU(&playerCards, deviceStructureListPtr);
         }
         else {
-            util += trainCPU(&playerCards);
+            trainCPU(&playerCards);
         }
     }
 
@@ -190,11 +189,9 @@ int TexasHoldemTrainer::trainSequentiell(int numIterations, bool useGpu) {
     for (int round = 0; round < 4; round++) {
         schablone->roundInfos.at(round).at(0).bucketFunction->saveBucketFunction();
     }
-
-    return util;
 }
 
-int TexasHoldemTrainer::trainCPU(vector<vector<string>>* playerCards) {
+void TexasHoldemTrainer::trainCPU(vector<vector<string>>* playerCards) {
 
     //a) bestimme gewinner
     int player0Eval = test7(playerCards->at(0));
@@ -337,9 +334,6 @@ int TexasHoldemTrainer::trainCPU(vector<vector<string>>* playerCards) {
             info.blueprintHandler->writePolicies(pos, size * sizeof(float), schablone->cumulativeRegrets.at(player) + info.startPointTemplate);
         }
     }
-
-    //util?
-    return 0;
 }
 
 __global__ void setLeafPayoffs(DeviceStructureList* dsl) {
@@ -510,7 +504,7 @@ GetIndexReturnType getIndexList(Template* schablone, int levelIndex) {
     return GetIndexReturnType { levelStart, numElements};
 }
 
-int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl) {
+void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl) {
 
     //a) bestimme gewinner
     int player0Eval = test7(playerCards->at(0));
@@ -635,7 +629,4 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
             info.blueprintHandler->writePolicies(pos, size * sizeof(float), schablone->cumulativeRegrets.at(player) + info.startPointTemplate);
         }
     }
-
-    //util?
-    return 0;
 }

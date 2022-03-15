@@ -56,9 +56,9 @@ public:
     TexasHoldemTrainer(std::string path);
     ~TexasHoldemTrainer();
 
-    int trainCPU(vector<vector<string>>* playerCards);
-    int trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
-    int trainSequentiell(int numIterations, bool useGpu);
+    void trainCPU(vector<vector<string>>* playerCards);
+    void trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
+    void trainSequentiell(int numIterations, bool useGpu);
 };
 
 #endif

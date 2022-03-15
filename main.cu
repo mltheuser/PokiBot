@@ -92,6 +92,8 @@ void train() {
 
     if (!cin) {
         cout << GET_WRONG_INPUT << endl;
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
     }
 
@@ -100,6 +102,8 @@ void train() {
 
     if (!cin) {
         cout << GET_WRONG_INPUT << endl;
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
     }
     
@@ -126,6 +130,8 @@ int main() {
 
         if (!cin) {
             cout << GET_WRONG_INPUT << endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
             continue;
         }
 
