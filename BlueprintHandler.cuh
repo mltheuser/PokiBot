@@ -1,6 +1,8 @@
 #ifndef __BlueprintHandler__
 #define __BlueprintHandler__
 
+//#include "Logger.cuh"
+
 #include <fstream>
 #include <string>
 #include <vector>

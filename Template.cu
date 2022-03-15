@@ -139,7 +139,6 @@ struct BuildTreeReturnType Template::buildTree() {
         worklist[i] = nodeIndex;
     }
 
-    //cleanup GameStates + Nodes
     for (int i = 0; i < worklistSize; i++) {
         delete nodeInformations.at(i).gameState;
 
@@ -186,7 +185,6 @@ static void reduceRoundPlayerActionCounts(vector<vector<int>>* roundPlayerAction
     }
 }
 
-//backwardPass durch worklist
 static void worklistBackwardPass(vector<float*>* cumulativeRegrets, int* worklist, int worklistLength, StateNode* stateWorklist, int stateWorklistLength, vector<vector<int>>* roundPlayerActionCounts) {
     int playerActionCounts[2] = { 0,0 };
     reduceRoundPlayerActionCounts(roundPlayerActionCounts, playerActionCounts);
@@ -228,10 +226,7 @@ StructureList* treeToLists(struct BuildTreeReturnType* tree) {
 
     for (int i = 0; i < numStateNodes; i++) {
         StateNode* stateNode = &tree->stateWorklist[i];
-        // GLOBALE DATEN
         player0[i] = stateNode->player0;
-        //TODO stateNodes brauchen keinen payoff mehr, dieser wird eh überschrieben während des Trainings.
-        // STATE NODE DATEN
         numChildren[i] = stateNode->children.size();
         policyPointers[i] = stateNode->policyPointer;
 
@@ -282,7 +277,6 @@ StructureList* treeToLists(struct BuildTreeReturnType* tree) {
     delete[] tree->stateWorklist;
     delete[] tree->leafWorklist;
 
-    //TODO wie kann man den Konstruktor direkt mit Parametern aufrufen?
     StructureList* structureList = new StructureList();
     structureList->childrenWorklistPointers = childrenWorklistPointers;
     structureList->folded = folded;

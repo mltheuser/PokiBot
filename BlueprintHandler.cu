@@ -34,7 +34,7 @@ void BlueprintHandler::createBlueprint(std::string path) {
 
 float* BlueprintHandler::readPolicies(int pos, int size) {
     if (!ifStream.is_open()) {
-        std::cout << "Input stream nicht mehr offen!" << std::endl;
+        //Logger::throwRuntimeError("Input stream nicht mehr offen!");
     }
 
     char* buffer = new char[size];
@@ -51,7 +51,7 @@ float* BlueprintHandler::readPolicies(int pos, int size) {
  */
 void BlueprintHandler::writePolicies(int pos, int size, float* policies) {
     if (!ofStream.is_open()) {
-        std::cout << "Output stream nicht mehr offen!" << std::endl;
+        //Logger::throwRuntimeError("Output stream nicht mehr offen!");
     }
 
     ofStream.seekp(pos * size, std::ios_base::beg);

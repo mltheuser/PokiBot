@@ -20,8 +20,6 @@
 
 #include <stdio.h>
 
-#define BLOCKSIZE 512
-
 TexasHoldemTrainer::~TexasHoldemTrainer() {
     delete schablone;
 }
@@ -153,8 +151,7 @@ void freeDeviceStructureList(DeviceStructureList* dsl) {
 
 
 int TexasHoldemTrainer::trainSequentiell(int numIterations, bool useGpu) {
-    Logger::log("Training start");
-
+    Logger::logToConsole("Training start");
     int util = 0;
     vector<string> cards;
     cards.reserve(52);
@@ -175,7 +172,7 @@ int TexasHoldemTrainer::trainSequentiell(int numIterations, bool useGpu) {
         playerCards.at(1) = { cards.at(2), cards.at(3), cards.at(4), cards.at(5), cards.at(6), cards.at(7), cards.at(8) };
 
         if (i % 1000 == 0) {
-            std::cout << "train " << i << std::endl;
+            Logger::logIteration(i);
         }
         
         if (useGpu) {
@@ -190,12 +187,10 @@ int TexasHoldemTrainer::trainSequentiell(int numIterations, bool useGpu) {
         freeDeviceStructureList(deviceStructureListPtr);
     }
 
-    std::cout << "saveBucketFunctions" << std::endl;
     for (int round = 0; round < 4; round++) {
         schablone->roundInfos.at(round).at(0).bucketFunction->saveBucketFunction();
     }
 
-    Logger::log("Training success");
     return util;
 }
 
@@ -528,7 +523,6 @@ int TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStru
 
     //b) setze payoffs in leafs durch gewinner
     int numLeafNodes = schablone->structureList->numLeafNodes;
-    int numStateNodes = schablone->structureList->numStateNodes;
 
     int N = numLeafNodes;
     cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);

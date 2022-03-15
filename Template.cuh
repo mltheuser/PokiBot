@@ -12,7 +12,7 @@
 using std::vector;
 using std::pair;
 
-typedef struct {
+struct StructureList {
     int* childrenWorklistPointers = nullptr;
     bool* folded = nullptr;
     vector<int> levelPointers;
@@ -25,7 +25,7 @@ typedef struct {
     float* pots = nullptr;
     float* reachProbabilities = nullptr;
     int* worklist = nullptr;
-} StructureList;
+};
 
 struct BuildTreeReturnType {
     int* worklist;

@@ -19,6 +19,8 @@ using std::vector;
 using std::string;
 using std::map;
 
+constexpr auto BLOCKSIZE = 512;
+
 struct DeviceStructureList {
     DeviceStructureList* Dself = nullptr;
 
@@ -57,9 +59,6 @@ public:
     int trainCPU(vector<vector<string>>* playerCards);
     int trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
     int trainSequentiell(int numIterations, bool useGpu);
-    float cfr(GameState gameState, vector<float> reachProbabilities);
-    void sortCards(vector<string>& cards);
-    void buildTree();
 };
 
 #endif

@@ -16,7 +16,6 @@ RandomAkteur::RandomAkteur(std::string path) {
 }
 
 std::pair<char, float> RandomAkteur::act(InformationSet* informationSet) {
-    // std::cout << "random akteur action" << std::endl;
     RoundPlayerInfo roundInfo = schablone->roundInfos.at(informationSet->round).at(informationSet->player);
     BucketFunction* bucketFunction = roundInfo.bucketFunction;
     vector<char> bucket = bucketFunction->getBucket(informationSet->playerCardsVisible);
@@ -24,7 +23,6 @@ std::pair<char, float> RandomAkteur::act(InformationSet* informationSet) {
 
     int max = (bucketFunction->bucketList.size()) / (bucketFunction->size * 2);
     bool newBucket = bucketPosition >= max;
-    int size = roundInfo.elementSize;
 
     if (newBucket) {
         return std::pair<char, float>('f', 0.f);
@@ -41,15 +39,6 @@ std::pair<char, float> RandomAkteur::act(InformationSet* informationSet) {
 
             int actionInt = rand() % currentActions.size();
 
-            for (int i = 0; i < currentActions.size(); i++) {
-                if (i == actionInt) {
-                    // std::cout << "CHOSEN: " << currentActions.at(i).first << currentActions.at(i).second << std::endl;
-                }
-                else {
-                    // std::cout << currentActions.at(i).first << currentActions.at(i).second << std::endl;
-                }
-
-            }
             delete currentGameState;
 
             return currentActions.at(actionInt);

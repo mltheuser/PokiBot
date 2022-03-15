@@ -6,92 +6,141 @@
 
 #include "Trainer.cuh"
 #include "GameMaster.cuh"
+#include "Logger.cuh"
 
 #include <cstdio>
 #include <vector>
 #include <time.h>
 #include <string>
 
-void clearFiles(std::string prefix) {
-    std::remove((prefix + "_blueprint_buckets_0").c_str());
-    std::remove((prefix + "_blueprint_buckets_1").c_str());
-    std::remove((prefix + "_blueprint_buckets_2").c_str());
-    std::remove((prefix + "_blueprint_buckets_3").c_str());
+using std::cout;
+using std::endl;
+using std::cin;
+using std::vector;
 
-    std::remove((prefix + "_blueprint00").c_str());
-    std::remove((prefix + "_blueprint01").c_str());
-    std::remove((prefix + "_blueprint10").c_str());
-    std::remove((prefix + "_blueprint11").c_str());
-    std::remove((prefix + "_blueprint20").c_str());
-    std::remove((prefix + "_blueprint21").c_str());
-    std::remove((prefix + "_blueprint30").c_str());
-    std::remove((prefix + "_blueprint31").c_str());
+vector<string> CONSOLE_OPTIONS = { "clear", "train", "play", "exit" };
+vector<string> DEVICE_OPTIONS = { "cpu", "gpu" };
+vector<string> PLAY_OPTIONS = { "vsRandom" };
+string GET_ITERATIONS = "Input number of iterations: ";
+string GET_WRONG_INPUT = "Falsche Eingabe ... zurück zur Hauptauswahl";
+
+void clearFiles(std::string prefix) {
+    using std::remove;
+
+    remove((prefix + "blueprint_buckets_0").c_str());
+    remove((prefix + "blueprint_buckets_1").c_str());
+    remove((prefix + "blueprint_buckets_2").c_str());
+    remove((prefix + "blueprint_buckets_3").c_str());
+
+    remove((prefix + "blueprint00").c_str());
+    remove((prefix + "blueprint01").c_str());
+    remove((prefix + "blueprint10").c_str());
+    remove((prefix + "blueprint11").c_str());
+    remove((prefix + "blueprint20").c_str());
+    remove((prefix + "blueprint21").c_str());
+    remove((prefix + "blueprint30").c_str());
+    remove((prefix + "blueprint31").c_str());
+}
+
+std::string getOptions(std::vector<string> options) {
+    std::ostringstream optionsString;
+    for (int i = 0; i < options.size(); i++) {
+        optionsString << options.at(i) << " (" << i << ")" << (i == options.size()-1 ? ": " : ", ");
+    }
+    return optionsString.str();
+}
+
+void clear() {
+    clearFiles("");
+    cout << "cleared successfully" << endl;
+   /* int deviceOption;
+
+    cout << "device: cpu(0), gpu(1), all(2)";
+    cin >> deviceOption;
+    if (deviceOption == '0') {
+        clearFiles("cpu");
+    }
+    else if (deviceOption == '1') {
+        clearFiles("gpu");
+    }
+    else if (deviceOption == '2') {
+        clearFiles("cpu");
+        clearFiles("gpu");
+    }
+    else {
+        std::cout << "deletion aborted" << std::endl;
+    }*/
+}
+
+void play() {
+    int playOption, iterations;
+
+    cout << GET_ITERATIONS;
+    cin >> iterations;
+    GameMaster gameMaster = GameMaster("blueprint");
+    PlayResult result = gameMaster.playBlueprintVersusRandom(iterations);
+
+    Logger::logPlay(result.winCounters.at(0), result.winCounters.at(1), result.payoffCounters.at(0), result.payoffCounters.at(1), iterations);
+}
+
+void train() {
+    int deviceOption, iterations;
+    std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
+
+    cout << getOptions(DEVICE_OPTIONS);
+    cin >> deviceOption;
+
+    if (!cin) {
+        cout << GET_WRONG_INPUT << endl;
+        return;
+    }
+
+    cout << GET_ITERATIONS;
+    cin >> iterations;
+
+    if (!cin) {
+        cout << GET_WRONG_INPUT << endl;
+        return;
+    }
+    
+    Logger::logStart(DEVICE_OPTIONS.at(deviceOption), BLOCKSIZE, iterations);
+
+    initStart = std::chrono::system_clock::now();
+    TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
+    trainStart = std::chrono::system_clock::now();
+    Logger::logInit(initStart, trainStart);
+
+    trainer.trainSequentiell(iterations, deviceOption == 1);
+    trainFinish = std::chrono::system_clock::now();
+    Logger::logTraining(trainStart, trainFinish, iterations);
 }
 
 int main() {
     srand(0);
 
-    bool running = true;
-    char action;
-    int iterations;
-    char device;
-    clock_t init, train;
+    int consoleOption;
 
-    while (running) {
-        std::cout << "What do you want to do? c(learfiles), t(rain), p(lay), e(xit) ";
-        std::cin >> action;
+    while (true) {
+        cout << getOptions(CONSOLE_OPTIONS);
+        cin >> consoleOption;
 
-        if (action == 'e') {
-            running = false;
+        if (!cin) {
+            cout << GET_WRONG_INPUT << endl;
+            continue;
         }
-        else if (action == 'c') {
-            std::cout << "device: cpu(0), gpu(1), all(2)";
-            std::cin >> device;
-            if (device == '0') {
-                clearFiles("cpu");
-            }
-            else if (device == '1') {
-                clearFiles("gpu");
-            }
-            else if (device == '2') {
-                clearFiles("cpu");
-                clearFiles("gpu");
-            }
-            else {
-                std::cout << "deletion aborted" << std::endl;
-            }
-        }
-        else if (action == 't') {
-            std::cout << "device: (c)pu, (g)pu: ";
-            std::cin >> device;
-            if (device == 'c') {
-                std::cout << "Input number of iterations: ";
-                std::cin >> iterations;
-                init = clock();
-                TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
-                init = clock() - init;
-                trainer.trainSequentiell(iterations, false);
-                train = clock() - init;
-                std::cout << "init: " << init << " train " << iterations << " iterations: " << train << " (" << train / static_cast<double>(iterations) << " pro iteration)" << std::endl;
-            }
-            else {
-                std::cout << "Input number of iterations: ";
-                std::cin >> iterations;
-                init = clock();
-                TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
-                init = clock() - init;
-                trainer.trainSequentiell(iterations, true);
-                train = clock() - init;
-                std::cout << "init: " << init << " train " << iterations << " iterations: " << train << " (" << train / static_cast<double>(iterations) << " pro iteration)" << std::endl;
-            }
-            
-        } else if (action == 'p') {
-            std::cout << "Input number of iterations: ";
-            std::cin >> iterations;
-            GameMaster gameMaster = GameMaster("blueprint");
-            gameMaster.playBlueprintVersusRandom(iterations);
-        } else {
-            std::cout << "Ungültige Eingaben";
+
+        switch (consoleOption) {
+        case 0:
+            clear();
+            break;
+        case 1:
+            train();
+            break;
+        case 2:
+            play();
+            break;
+        case 3:
+            return;
         }
     }
 }

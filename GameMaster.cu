@@ -7,42 +7,40 @@ GameMaster::GameMaster(std::string path) {
     this->path = path;
 }
 
-void GameMaster::playBlueprintVersusRandom(int iterations) {
+PlayResult GameMaster::playBlueprintVersusRandom(int iterations) {
     Template* schablone = Template::createDefaultTemplate(path);
 
     BlueprintAkteur* blueprintAkteur = new BlueprintAkteur(path);
     RandomAkteur* randomAkteur = new RandomAkteur(path);
     vector<Akteur*> akteure = { blueprintAkteur, randomAkteur };
 
-    vector<int> winCounters{ 0,0 };
-    vector<float> payoffCounters{ 0.f, 0.f };
+    PlayResult playResult = PlayResult();
+
+    
     for (int i = 0; i < iterations; i++) {
-        if (i % 1000 == 0) std::cout << i << std::endl;
+        //if (i % 1000 == 0) Logger::logIteration(i);
+
         vector<std::string> cards = getCards();
 
         std::pair<int, float> result = play(schablone, cards, akteure);
         int winner = result.first;
         float payoff = result.second;
-        // std::cout << "winner: " << winner << std::endl; 
+        
         if (winner < 0) {
             continue;
         }
         else {
-            winCounters.at(winner)++;
-            payoffCounters.at(winner) += payoff;
-            payoffCounters.at((winner + 1) % 2) -= payoff;
+            playResult.winCounters.at(winner)++;
+            playResult.payoffCounters.at(winner) += payoff;
+            playResult.payoffCounters.at((winner + 1) % 2) -= payoff;
         }
     }
-    std::cout << winCounters.at(0) << " <> " << winCounters.at(1) << std::endl;
-    float winPercentage = (static_cast<float>(winCounters.at(0)) / static_cast<float>(winCounters.at(0) + winCounters.at(1)));
-    std::cout << winPercentage << std::endl;
-
-    vector<float> normalizedPayoffCounters = { payoffCounters.at(0) / iterations, payoffCounters.at(1) / iterations };
-    std::cout << "payoff 0: " << payoffCounters.at(0) << "(norm: " << normalizedPayoffCounters.at(0) << ") " << "payoff 1: " << payoffCounters.at(1) << "(norm: " << normalizedPayoffCounters.at(1) << ") " << std::endl;
-
+    
     delete blueprintAkteur;
     delete randomAkteur;
     delete schablone;
+
+    return playResult;
 }
 
 std::pair<int, float> GameMaster::play(Template* schablone, vector<std::string> cards, vector<Akteur*> akteure) {
@@ -60,7 +58,6 @@ std::pair<int, float> GameMaster::play(Template* schablone, vector<std::string> 
         if (action.first == 'f') {
             int winner = (informationSet->player + 1) % 2;
             std::pair<int, GameState*> result = getCurrentNode(schablone, informationSet->actionHistory);
-            int currentNodeWorklistIndex = result.first;
             GameState* currentGameState = result.second;
             float payoff = winner == 0 ? currentGameState->pot.second : currentGameState->pot.first;
             delete currentGameState;
@@ -77,7 +74,6 @@ std::pair<int, float> GameMaster::play(Template* schablone, vector<std::string> 
 
                 int winner = draw ? -1 : playerWon ? 0 : 1;
                 std::pair<int, GameState*> result = getCurrentNode(schablone, informationSet->actionHistory);
-                int currentNodeWorklistIndex = result.first;
                 GameState* currentGameState = result.second;
                 float payoff = 0.f;
                 if (!draw) {
