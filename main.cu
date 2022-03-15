@@ -18,11 +18,39 @@ using std::endl;
 using std::cin;
 using std::vector;
 
-vector<string> CONSOLE_OPTIONS = { "clear", "train", "play", "exit" };
+vector<string> CONSOLE_OPTIONS = { "clear", "train", "play", "benchmark", "exit" };
 vector<string> DEVICE_OPTIONS = { "cpu", "gpu" };
 vector<string> PLAY_OPTIONS = { "vsRandom" };
 string GET_ITERATIONS = "Input number of iterations: ";
 string GET_WRONG_INPUT = "Falsche Eingabe ... zurück zur Hauptauswahl";
+
+void benchmark() {
+    std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
+    int iterations = 1000;
+    //gpu
+    Logger::logStart(DEVICE_OPTIONS.at(1), BLOCKSIZE, iterations);
+
+    initStart = std::chrono::system_clock::now();
+    TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
+    trainStart = std::chrono::system_clock::now();
+    Logger::logInit(initStart, trainStart);
+
+    trainer.trainSequentiell(iterations, true);
+    trainFinish = std::chrono::system_clock::now();
+    Logger::logTraining(trainStart, trainFinish, 1000);
+
+    GameMaster gameMaster = GameMaster("blueprint");
+    PlayResult result = gameMaster.playBlueprintVersusRandom(iterations);
+
+    Logger::logPlay(result.winCounters.at(0), result.winCounters.at(1), result.payoffCounters.at(0), result.payoffCounters.at(1), iterations);
+
+    trainer.schablone->roundInfos.at(3).at(0).bucketFunction->loadBucketFunction();
+    size_t bucketListSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->bucketList.size();
+    size_t bucketSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->size * 2;
+    size_t bucketCount = bucketListSize / bucketSize;
+
+    Logger::logBenchmark(1, iterations, bucketCount, initStart, trainStart, trainFinish, result.winCounters.at(0), result.payoffCounters.at(0));
+}
 
 void clearFiles(std::string prefix) {
     using std::remove;
@@ -146,6 +174,9 @@ int main() {
             play();
             break;
         case 3:
+            benchmark();
+            break;
+        case 4:
             return;
         }
     }

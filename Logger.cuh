@@ -31,6 +31,43 @@ public:
         throw std::runtime_error("errorText");
     }
 
+    static void logBenchmark(int deviceOption, int iterations, int bucketCount, const std::chrono::system_clock::time_point& initStart, const std::chrono::system_clock::time_point& trainStart, const std::chrono::system_clock::time_point& trainEnd, float winsPlayer0, float payoffPlayer0) {
+        std::string path = "benchmark.txt";
+        std::ofstream write;
+
+        auto initTime = std::chrono::duration_cast<std::chrono::milliseconds>(trainStart - initStart).count();
+        auto trainTime = std::chrono::duration_cast<std::chrono::milliseconds>(trainEnd - trainStart).count();
+
+        write.open(path.c_str(), std::ios::out | std::ios::binary | std::ios::app);
+
+        //TODO filesize
+
+        char* deviceOptionChar = (char*)&deviceOption;
+        write.write(deviceOptionChar, sizeof(int));
+
+        char* iterationsChar = (char*)&iterations;
+        write.write(iterationsChar, sizeof(int));
+
+        char* bucketCountChar = (char*)&bucketCount;
+        write.write(bucketCountChar, sizeof(int));
+
+        char* initTimeChar = (char*)&initTime;
+        write.write(initTimeChar, sizeof(int));
+
+        char* trainTimeChar = (char*)&trainTime;
+        write.write(trainTimeChar, sizeof(int));
+
+        //TODO umrechnen in winrate
+        char* winrateChar = (char*)&winsPlayer0;
+        write.write(winrateChar, sizeof(float));
+
+        //TODO normalisieren?
+        char* payoffChar = (char*)&payoffPlayer0;
+        write.write(payoffChar, sizeof(float));
+
+        write.close();
+    }
+
     static void logIteration(int iteration) {
         std::ostringstream log;
 
