@@ -18,15 +18,10 @@
 #define TABLES_H
 
 extern const short flush[8192];
-extern const short noflush5[6175];
-extern const short noflush6[18395];
 extern const short noflush7[49205];
 extern const unsigned char suits[4609];
 
 extern const unsigned int choose[53][10];
 extern const int dp[5][14][10];
-
-extern const short noflush_omaha[11238500];
-extern const short flush_omaha[4099095];
 
 #endif // TABLES_H

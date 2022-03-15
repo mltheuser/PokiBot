@@ -48,8 +48,8 @@ class Hand {
   std::array<unsigned char, 13> quinary_{{0}};
 };
 
-} // namespace phevaluator
+}
 
-#endif // __cplusplus
+#endif
 
-#endif // PHEVALUATOR_HAND_H
+#endif

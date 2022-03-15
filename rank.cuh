@@ -24,7 +24,6 @@ extern "C" {
 #include <stdbool.h>
 
 enum rank_category {
-  // FIVE_OF_A_KIND = 0, // Reserved
   STRAIGHT_FLUSH = 1,
   FOUR_OF_A_KIND,
   FULL_HOUSE,
@@ -47,18 +46,6 @@ enum rank_category get_rank_category(int rank);
  * Returns a string description of the rank category, e.g. "Flush", "Full House"
  */
 const char* describe_rank_category(enum rank_category category);
-
-/*
- * Given a rank from 1 to 7462
- * Returns a string description of the rank, e.g. "King-High Straight Flush"
- */
-const char* describe_rank(int rank);
-
-/*
- * Given a rank from 1 to 7462
- * Returns a string description of a sample hand of the rank, e.g. "AKQJT"
- */
-const char* describe_sample_hand(int rank);
 
 /*
  * Given a rank from 1 to 7462
@@ -107,22 +94,6 @@ class Rank {
     return value_ != other.value_;
   }
 
-  enum rank_category category() const {
-    return get_rank_category(value_);
-  }
-
-  std::string describeCategory() const {
-    return describe_rank_category(category());
-  }
-
-  std::string describeRank() const {
-    return describe_rank(value_);
-  }
-
-  std::string describeSampleHand() const {
-    return describe_sample_hand(value_);
-  }
-
   bool isFlush() const {
     return is_flush(value_);
   }
@@ -134,8 +105,8 @@ class Rank {
   int value_ = 0;
 };
 
-} // namespace phevaluator
+}
 
-#endif // __cplusplus
+#endif
 
-#endif // PHEVALUATOR_STRENTH_H
+#endif
