@@ -149,8 +149,14 @@ void train() {
     Logger::logTraining(trainStart, trainFinish, iterations);
 
     if (gDebug) {
-        for (int i = 0; i < 3; i++) {
-            Logger::logToConsole(std::to_string(trainer.elapsedKernelTimes.at(i) /= iterations));
+        for (int i = 0; i < trainer.elapsedKernelTimes.size(); i++) {
+            Logger::logToConsole(std::to_string(trainer.elapsedKernelTimes.at(i) /= iterations) + " ns");
+        }
+        for (int i = 0; i < trainer.elapsedCpuTimes.size(); i++) {
+            Logger::logToConsole(std::to_string(trainer.elapsedCpuTimes.at(i) /= iterations) + " ns");
+        }
+        for (int i = 0; i < trainer.elapsedMemcpyTimes.size(); i++) {
+            Logger::logToConsole(std::to_string(trainer.elapsedMemcpyTimes.at(i) /= iterations) + " ns");
         }
     }
 

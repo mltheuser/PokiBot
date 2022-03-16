@@ -10,7 +10,7 @@
 using std::vector;
 using std::string;
 
-constexpr bool gDebug = false;
+constexpr bool gDebug = true;
 constexpr auto BLOCKSIZE = 1024;
 
 struct DeviceStructureList {
@@ -48,6 +48,8 @@ public:
     BlueprintHandler* blueprintHandler;
 
     vector<double> elapsedKernelTimes = { 0.0, 0.0, 0.0 };
+    vector<double> elapsedCpuTimes = { 0.0, 0.0, 0.0 };
+    vector<double> elapsedMemcpyTimes = { 0.0 };
 
     TexasHoldemTrainer(string path);
     ~TexasHoldemTrainer();
@@ -55,6 +57,9 @@ public:
     void trainCPU(vector<vector<string>>* playerCards);
     void trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
     void trainSequentiell(int numIterations, bool useGpu);
+
+    void writeStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
+    void loadStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
 };
 
 #endif

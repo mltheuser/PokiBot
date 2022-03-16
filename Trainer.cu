@@ -360,35 +360,6 @@ __global__ void setLeafPayoffs(DeviceStructureList* dsl) {
     dsl->payoff[*dsl->numStateNodes + id] = (localPlayerWon == currentPlayer ? localPayoff : -localPayoff);
 }
 
-//__device__ TrainingInitStruct* getInitStructGPU(DeviceStructureList* dsl, int i) {
-//    int policyPointer = dsl->policyPointers[i];
-//    int numChildren = dsl->numChildren[i];
-//    int childrenWorklistPointer = dsl->childrenWorklistPointers[i];
-//
-//    int currentPlayer = dsl->player0[i] ? 0 : 1;
-//    float* cummulativeRegrets = dsl->player0[i] ? dsl->cumulativeRegrets0 + policyPointer : dsl->cumulativeRegrets1 + policyPointer;
-//
-//    float* policy = dsl->player0[i] ? dsl->policy0 + policyPointer : dsl->policy1 + policyPointer;
-//
-//    float* reachProbabilitiesLocal = dsl->reachProbabilities + (i * 2);
-//    int* children = dsl->worklist + childrenWorklistPointer;
-//    int otherPlayer = 1 - currentPlayer;
-//
-//    auto trainingInitStruct = new TrainingInitStruct();
-//
-//    trainingInitStruct->policyPointer = policyPointer;
-//    trainingInitStruct->numChildren = numChildren;
-//    trainingInitStruct->childrenWorklistPointer = childrenWorklistPointer;
-//    trainingInitStruct->currentPlayer = currentPlayer;
-//    trainingInitStruct->cumulativeRegrets = cummulativeRegrets;
-//    trainingInitStruct->policy = policy;
-//    trainingInitStruct->reachProbabilitiesLocal = reachProbabilitiesLocal;
-//    trainingInitStruct->children = children;
-//    trainingInitStruct->otherPlayer = otherPlayer;
-//
-//    return trainingInitStruct;
-//}
-
 __global__ void setReachProbsAndPolicy(DeviceStructureList* dsl) {
 
     int id = blockIdx.x * blockDim.x + threadIdx.x;
@@ -453,7 +424,7 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
     int numChildren = dsl->numChildren[id];
     int childrenWorklistPointer = dsl->childrenWorklistPointers[id];
 
-    float* policy = dsl->player0[id] ? dsl->policy0 + policyPointer : dsl->policy1 + policyPointer;
+    float* policy = policyPointer + dsl->player0[id] ? dsl->policy0 : dsl->policy1;
 
     int* children = dsl->worklist + childrenWorklistPointer;
 
@@ -500,36 +471,27 @@ GetIndexReturnType getIndexList(Template* schablone, int levelIndex) {
     return GetIndexReturnType { levelStart, numElements};
 }
 
-void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl) {
+void TexasHoldemTrainer::writeStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl) {
+    int dArrSize = schablone->roundInfos.at(3).at(0).startPointTemplate + schablone->roundInfos.at(3).at(0).elementSize;
+    dArrSize = dArrSize * sizeof(float);
+    cudaMemcpy(schablone->cumulativeRegrets.at(0), dsl->cumulativeRegrets0, dArrSize, cudaMemcpyDeviceToHost);
+    dArrSize = schablone->roundInfos.at(3).at(1).startPointTemplate + schablone->roundInfos.at(3).at(1).elementSize;
+    dArrSize = dArrSize * sizeof(float);
+    cudaMemcpy(schablone->cumulativeRegrets.at(1), dsl->cumulativeRegrets1, dArrSize, cudaMemcpyDeviceToHost);
 
-    //a) bestimme gewinner
-    int player0Eval = test7(playerCards->at(0));
-    int player1Eval = test7(playerCards->at(1));
+    for (int round = 0; round < 4; round++) {
+        for (int player = 0; player < 2; player++) {
+            RoundPlayerInfo info = schablone->roundInfos.at(round).at(player);
+            int pos = info.bucketFunction->getBucketPosition(info.bucketFunction->getBucket(playerCards->at(player)));
 
-    bool draw = player0Eval == player1Eval;
-    bool playerWon = player0Eval > player1Eval;
-    gpuErrchk(cudaMemcpy(dsl->draw, &draw, sizeof(bool), cudaMemcpyHostToDevice));
-    gpuErrchk(cudaMemcpy(dsl->playerWon, &playerWon, sizeof(bool), cudaMemcpyHostToDevice));
+            int size = info.elementSize;
 
-    //b) setze payoffs in leafs durch gewinner
-    int numLeafNodes = schablone->structureList->numLeafNodes;
-
-    int N = numLeafNodes;
-    cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
-    int blockSize = BLOCKSIZE;
-    int numBlocks = (N + blockSize - 1) / blockSize;
-    if (gDebug) {
-        auto start = std::chrono::high_resolution_clock::now();
-        setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-        auto end = std::chrono::high_resolution_clock::now();
-        elapsedKernelTimes.at(0) += std::chrono::duration<double>(end - start).count();
+            info.blueprintHandler->writePolicies(pos, size * sizeof(float), schablone->cumulativeRegrets.at(player) + info.startPointTemplate);
+        }
     }
-    else {
-        setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
-    }
+}
 
+void TexasHoldemTrainer::loadStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl) {
     //c_1) prepare strategie laden
     for (int round = 0; round < 4; round++) {
         for (int player = 0; player < 2; player++) {
@@ -569,9 +531,70 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
             delete[] reads;
         }
     }
+}
+
+void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl) {
+
+    //a) bestimme gewinner
+    int player0Eval, player1Eval;
+    if (gDebug) {
+        auto start = std::chrono::high_resolution_clock::now();
+        player0Eval = test7(playerCards->at(0));
+        player1Eval = test7(playerCards->at(1));
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsedCpuTimes.at(0) += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+    else {
+        player0Eval = test7(playerCards->at(0));
+        player1Eval = test7(playerCards->at(1));
+    }
+    
+
+    bool draw = player0Eval == player1Eval;
+    bool playerWon = player0Eval > player1Eval;
+    if (gDebug) {
+        auto start = std::chrono::high_resolution_clock::now();
+        gpuErrchk(cudaMemcpy(dsl->draw, &draw, sizeof(bool), cudaMemcpyHostToDevice));
+        gpuErrchk(cudaMemcpy(dsl->playerWon, &playerWon, sizeof(bool), cudaMemcpyHostToDevice));
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsedMemcpyTimes.at(0) += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+    else {
+        gpuErrchk(cudaMemcpy(dsl->draw, &draw, sizeof(bool), cudaMemcpyHostToDevice));
+        gpuErrchk(cudaMemcpy(dsl->playerWon, &playerWon, sizeof(bool), cudaMemcpyHostToDevice));
+    }
+
+    //b) setze payoffs in leafs durch gewinner
+    int numLeafNodes = schablone->structureList->numLeafNodes;
+
+    int N = numLeafNodes;
+    cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
+    int blockSize = BLOCKSIZE;
+    int numBlocks = (N + blockSize - 1) / blockSize;
+    if (gDebug) {
+        auto start = std::chrono::high_resolution_clock::now();
+        setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsedKernelTimes.at(0) += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+    else {
+        setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
+    }
+
+    //c_1) prepare strategie laden
+    if (gDebug) {
+        auto start = std::chrono::high_resolution_clock::now();
+        loadStrategy(playerCards, dsl);
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsedCpuTimes.at(1) += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+    else {
+        loadStrategy(playerCards, dsl);
+    }
 
     // cudaDeviceSynchronize is not needed here, as the prev. kernel only writes payoffs and payoffs are first needed at d), furthermore is cudaMEmpy synchronous, so cudaDeviceSyncrhonize is not needed here aswell.
-    //gpuErrchk(cudaDeviceSynchronize());
 
     //c_2) forwardpass: setze reach probabilities
     schablone->structureList->reachProbabilities[0] = 1.f;
@@ -597,7 +620,7 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
             auto end = std::chrono::high_resolution_clock::now();
-            elapsedKernelTimes.at(1) += std::chrono::duration<double>(end - start).count();
+            elapsedKernelTimes.at(1) += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
         }
         else {
             setReachProbsAndPolicy << < numBlocks, blockSize >> > (dsl->Dself);
@@ -608,7 +631,6 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     }
 
     //cudaDeviceSynchronize needed for kernel in b), but implicit in c_2)
-    //gpuErrchk(cudaDeviceSynchronize());
 
     //d_1) backwardpass: setze regrets
     for (int i = levelPointers.size() - 1; i >= 0; i--) {
@@ -627,7 +649,7 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
             auto end = std::chrono::high_resolution_clock::now();
-            elapsedKernelTimes.at(2) += std::chrono::duration<double>(end - start).count();
+            elapsedKernelTimes.at(2) += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
         }
         else {
             setRegrets << < numBlocks, blockSize >> > (dsl->Dself);
@@ -639,21 +661,13 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
 
     //d_2) postpare strategie zurückschreiben
 
-    int dArrSize = schablone->roundInfos.at(3).at(0).startPointTemplate + schablone->roundInfos.at(3).at(0).elementSize;
-    dArrSize = dArrSize * sizeof(float);
-    cudaMemcpy(schablone->cumulativeRegrets.at(0), dsl->cumulativeRegrets0, dArrSize, cudaMemcpyDeviceToHost);
-    dArrSize = schablone->roundInfos.at(3).at(1).startPointTemplate + schablone->roundInfos.at(3).at(1).elementSize;
-    dArrSize = dArrSize * sizeof(float);
-    cudaMemcpy(schablone->cumulativeRegrets.at(1), dsl->cumulativeRegrets1, dArrSize, cudaMemcpyDeviceToHost);
-
-    for (int round = 0; round < 4; round++) {
-        for (int player = 0; player < 2; player++) {
-            RoundPlayerInfo info = schablone->roundInfos.at(round).at(player);
-            int pos = info.bucketFunction->getBucketPosition(info.bucketFunction->getBucket(playerCards->at(player)));
-
-            int size = info.elementSize;
-
-            info.blueprintHandler->writePolicies(pos, size * sizeof(float), schablone->cumulativeRegrets.at(player) + info.startPointTemplate);
-        }
+    if (gDebug) {
+        auto start = std::chrono::high_resolution_clock::now();
+        writeStrategy(playerCards, dsl);
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsedCpuTimes.at(2) += std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    }
+    else {
+        writeStrategy(playerCards, dsl);
     }
 }
