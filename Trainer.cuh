@@ -1,24 +1,16 @@
 #ifndef __Trainer__
 #define __Trainer__
 
-#include "BucketFunction.cuh"
 #include "Template.cuh"
-#include "GameState.cuh"
 #include "Utils.cuh"
 
-#include <map>
-#include <vector>
-#include <string>
-#include <numeric>
-#include <random>
-#include <iostream>
-#include <mutex>
-#include <list>
+#include<vector>
+#include<string>
 
 using std::vector;
 using std::string;
-using std::map;
 
+constexpr bool gDebug = true;
 constexpr auto BLOCKSIZE = 512;
 
 struct DeviceStructureList {
@@ -53,7 +45,9 @@ public:
     Template* schablone;
     BlueprintHandler* blueprintHandler;
 
-    TexasHoldemTrainer(std::string path);
+    vector<double> elapsedKernelTimes = { 0.0, 0.0, 0.0 };
+
+    TexasHoldemTrainer(string path);
     ~TexasHoldemTrainer();
 
     void trainCPU(vector<vector<string>>* playerCards);

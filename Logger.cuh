@@ -4,6 +4,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <vector>
+#include <chrono>
 
 using std::string;
 using std::cout;

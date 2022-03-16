@@ -1,4 +1,6 @@
-﻿
+﻿#ifndef __main__
+#define __main__
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -134,7 +136,7 @@ void train() {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
     }
-    
+
     Logger::logStart(DEVICE_OPTIONS.at(deviceOption), BLOCKSIZE, iterations);
 
     initStart = std::chrono::system_clock::now();
@@ -145,6 +147,13 @@ void train() {
     trainer.trainSequentiell(iterations, deviceOption == 1);
     trainFinish = std::chrono::system_clock::now();
     Logger::logTraining(trainStart, trainFinish, iterations);
+
+    if (gDebug) {
+        for (int i = 0; i < 3; i++) {
+            Logger::logToConsole(std::to_string(trainer.elapsedKernelTimes.at(i) /= iterations));
+        }
+    }
+
 }
 
 int main() {
@@ -181,3 +190,4 @@ int main() {
         }
     }
 }
+#endif

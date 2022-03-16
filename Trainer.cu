@@ -1,34 +1,27 @@
 #include "Trainer.cuh"
-#include "Template.cuh"
 #include "Logger.cuh"
 #include "Cards.cuh"
-#include "Utils.cuh"
 
 #include "SolverA.cuh"
 
-#include <random>
-#include <algorithm>
-#include <numeric>
-#include <cstring>
-
 #include "cuda_runtime.h"
-#include "cuda.h"
-#include "cuda_runtime_api.h"
-#include "cuda_device_runtime_api.h"
-#include "device_functions.h"
 #include "device_launch_parameters.h"
 
-#include <stdio.h>
+#include <numeric>
+#include <cstring>
+#include <chrono>
+
+using std::memcpy;
+using std::inner_product;
 
 TexasHoldemTrainer::~TexasHoldemTrainer() {
     delete schablone;
 }
 
-TexasHoldemTrainer::TexasHoldemTrainer(std::string path) {
+TexasHoldemTrainer::TexasHoldemTrainer(string path) {
     blueprintHandler = nullptr;
     schablone = Template::createDefaultTemplate(path);
 }
-
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort = true)
@@ -39,7 +32,6 @@ inline void gpuAssert(cudaError_t code, const char* file, int line, bool abort =
         if (abort) exit(code);
     }
 }
-
 
 DeviceStructureList* prepareDevice(Template* schablone) {
     int numStateNodes = schablone->structureList->numStateNodes;
@@ -248,7 +240,7 @@ void TexasHoldemTrainer::trainCPU(vector<vector<string>>* playerCards) {
                 delete[](otherZeroArray);
             }
             float* reads = info.blueprintHandler->readPolicies(pos, size * sizeof(float));
-            std::memcpy(schablone->cumulativeRegrets.at(player) + info.startPointTemplate, reads, size * sizeof(float));
+            memcpy(schablone->cumulativeRegrets.at(player) + info.startPointTemplate, reads, size * sizeof(float));
             delete[] reads;
         }
     }
@@ -295,7 +287,7 @@ void TexasHoldemTrainer::trainCPU(vector<vector<string>>* playerCards) {
 
         float* cumulativeRegrets = trainingInitStruct->cumulativeRegrets;
 
-        float nodeUtility = std::inner_product(policy, policy + numChildren, upstreamPayoffs.begin(), 0.f);
+        float nodeUtility = inner_product(policy, policy + numChildren, upstreamPayoffs.begin(), 0.f);
         schablone->structureList->payoff[i] = nodeUtility;
 
         float* reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
@@ -522,9 +514,19 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
     int blockSize = BLOCKSIZE;
     int numBlocks = (N + blockSize - 1) / blockSize;
-    setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
+    if (gDebug) {
+        auto start = std::chrono::high_resolution_clock::now();
+        setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        auto end = std::chrono::high_resolution_clock::now();
+        elapsedKernelTimes.at(0) += std::chrono::duration<double>(end - start).count();
+    }
+    else {
+        setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+    }
 
     //c_1) prepare strategie laden
     for (int round = 0; round < 4; round++) {
@@ -585,11 +587,21 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
         cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
         int blockSize = BLOCKSIZE;
         int numBlocks = (N + blockSize - 1) / blockSize;
-        setReachProbsAndPolicy << < numBlocks, blockSize >> > (dsl->Dself);
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
 
-        cudaDeviceSynchronize();
+        if (gDebug) {
+            auto start = std::chrono::high_resolution_clock::now();
+            setReachProbsAndPolicy << < numBlocks, blockSize >> > (dsl->Dself);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            auto end = std::chrono::high_resolution_clock::now();
+            elapsedKernelTimes.at(1) += std::chrono::duration<double>(end - start).count();
+        }
+        else {
+            setReachProbsAndPolicy << < numBlocks, blockSize >> > (dsl->Dself);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
+        
     }
 
     //d_1) backwardpass: setze regrets
@@ -603,11 +615,20 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
         cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
         int blockSize = BLOCKSIZE;
         int numBlocks = (N + blockSize - 1) / blockSize;
-        setRegrets << < numBlocks, blockSize >> > (dsl->Dself);
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-
-        cudaDeviceSynchronize();
+        if (gDebug) {
+            auto start = std::chrono::high_resolution_clock::now();
+            setRegrets << < numBlocks, blockSize >> > (dsl->Dself);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            auto end = std::chrono::high_resolution_clock::now();
+            elapsedKernelTimes.at(2) += std::chrono::duration<double>(end - start).count();
+        }
+        else {
+            setRegrets << < numBlocks, blockSize >> > (dsl->Dself);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
+       
     }
 
     //d_2) postpare strategie zurückschreiben
