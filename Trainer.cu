@@ -393,14 +393,16 @@ __global__ void setReachProbsAndPolicy(DeviceStructureList* dsl) {
 
     id += *dsl->levelStart;
 
-    auto tis = getInitStructGPU(dsl, id);
+    int policyPointer = dsl->policyPointers[id];
+    int numChildren = dsl->numChildren[id];
 
-    int numChildren = tis->numChildren;
-    float* policy = tis->policy;
-    int* children = tis->children;
-    int currentPlayer = tis->currentPlayer;
-    int otherPlayer = tis->otherPlayer;
-    float* reachProbabilitiesLocal = tis->reachProbabilitiesLocal;
+    int currentPlayer = dsl->player0[id] ? 0 : 1;
+
+    float* policy = dsl->player0[id] ? dsl->policy0 + policyPointer : dsl->policy1 + policyPointer;
+
+    float* reachProbabilitiesLocal = dsl->reachProbabilities + (id * 2);
+    int* children = dsl->worklist + dsl->childrenWorklistPointers[id];
+    int otherPlayer = 1 - currentPlayer;
 
     for (int i = 0; i < numChildren; i++) {
         policy[i] = fmaxf(policy[i], 0.f);
@@ -429,7 +431,6 @@ __global__ void setReachProbsAndPolicy(DeviceStructureList* dsl) {
         }
     }
 
-    free(tis);
 }
 
 __global__ void setRegrets(DeviceStructureList* dsl) {
@@ -442,10 +443,13 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
 
     id += *dsl->levelStart;
 
-    TrainingInitStruct* trainingInitStruct = getInitStructGPU(dsl, id);
+    int policyPointer = dsl->policyPointers[id];
+    int numChildren = dsl->numChildren[id];
+    int childrenWorklistPointer = dsl->childrenWorklistPointers[id];
 
-    int* children = trainingInitStruct->children;
-    int numChildren = trainingInitStruct->numChildren;
+    float* policy = dsl->player0[id] ? dsl->policy0 + policyPointer : dsl->policy1 + policyPointer;
+
+    int* children = dsl->worklist + childrenWorklistPointer;
 
     float* upstreamPayoffs = new float[numChildren];
 
@@ -454,27 +458,25 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
 
         upstreamPayoffs[j] = -dsl->payoff[children[j]];
 
-        nodeUtility += trainingInitStruct->policy[j] * upstreamPayoffs[j];
+        nodeUtility += policy[j] * upstreamPayoffs[j];
 
     }
 
     dsl->payoff[id] = nodeUtility;
 
-    float* reachProbabilitiesLocal = trainingInitStruct->reachProbabilitiesLocal;
-    int currentPlayer = trainingInitStruct->currentPlayer;
-    int otherPlayer = trainingInitStruct->otherPlayer;
+    float* reachProbabilitiesLocal = dsl->reachProbabilities + (id * 2);
+    int currentPlayer = dsl->player0[id] ? 0 : 1;
+    int otherPlayer = 1 - currentPlayer;
 
     float counterValue = reachProbabilitiesLocal[currentPlayer] * nodeUtility;
 
-    float* cumulativeRegrets = trainingInitStruct->cumulativeRegrets;
+    float* cumulativeRegrets = dsl->player0[id] ? dsl->cumulativeRegrets0 + policyPointer : dsl->cumulativeRegrets1 + policyPointer;
     for (int j = 0; j < numChildren; j++) {
         float counterActionValue = upstreamPayoffs[j];
         cumulativeRegrets[j] = cumulativeRegrets[j] + fmaxf(0.f, reachProbabilitiesLocal[otherPlayer] * (counterActionValue - counterValue));
     }
 
     free(upstreamPayoffs);
-
-    free(trainingInitStruct);
 }
 
 struct GetIndexReturnType {
