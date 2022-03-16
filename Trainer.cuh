@@ -10,8 +10,8 @@
 using std::vector;
 using std::string;
 
-constexpr bool gDebug = true;
-constexpr auto BLOCKSIZE = 512;
+constexpr bool gDebug = false;
+constexpr auto BLOCKSIZE = 1024;
 
 struct DeviceStructureList {
     DeviceStructureList* Dself = nullptr;
@@ -38,6 +38,8 @@ struct DeviceStructureList {
     float* cumulativeRegrets1;
     float* policy0;
     float* policy1;
+
+    float* upstreamPayoffs;
 };
 
 class TexasHoldemTrainer {

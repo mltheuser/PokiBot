@@ -105,6 +105,11 @@ DeviceStructureList* prepareDevice(Template* schablone) {
     gpuErrchk(cudaMalloc((void**)&dsl->cumulativeRegrets1, size));
     gpuErrchk(cudaMalloc((void**)&dsl->policy1, size));
 
+    size = worklistSize; //evtl. -1
+    size = size * sizeof(float);
+    gpuErrchk(cudaMalloc((void**)&dsl->upstreamPayoffs, size));
+
+
     size = sizeof(DeviceStructureList);
     gpuErrchk(cudaMalloc((void**)&dsl->Dself, size));
     gpuErrchk(cudaMemcpy(dsl->Dself, dsl, size, cudaMemcpyHostToDevice));
@@ -136,6 +141,7 @@ void freeDeviceStructureList(DeviceStructureList* dsl) {
     gpuErrchk(cudaFree(dsl->cumulativeRegrets1));
     gpuErrchk(cudaFree(dsl->policy0));
     gpuErrchk(cudaFree(dsl->policy1));
+    gpuErrchk(cudaFree(dsl->upstreamPayoffs));
 
     gpuErrchk(cudaFree(dsl->Dself));
     free(dsl);
@@ -354,34 +360,34 @@ __global__ void setLeafPayoffs(DeviceStructureList* dsl) {
     dsl->payoff[*dsl->numStateNodes + id] = (localPlayerWon == currentPlayer ? localPayoff : -localPayoff);
 }
 
-__device__ TrainingInitStruct* getInitStructGPU(DeviceStructureList* dsl, int i) {
-    int policyPointer = dsl->policyPointers[i];
-    int numChildren = dsl->numChildren[i];
-    int childrenWorklistPointer = dsl->childrenWorklistPointers[i];
-
-    int currentPlayer = dsl->player0[i] ? 0 : 1;
-    float* cummulativeRegrets = dsl->player0[i] ? dsl->cumulativeRegrets0 + policyPointer : dsl->cumulativeRegrets1 + policyPointer;
-
-    float* policy = dsl->player0[i] ? dsl->policy0 + policyPointer : dsl->policy1 + policyPointer;
-
-    float* reachProbabilitiesLocal = dsl->reachProbabilities + (i * 2);
-    int* children = dsl->worklist + childrenWorklistPointer;
-    int otherPlayer = 1 - currentPlayer;
-
-    auto trainingInitStruct = new TrainingInitStruct();
-
-    trainingInitStruct->policyPointer = policyPointer;
-    trainingInitStruct->numChildren = numChildren;
-    trainingInitStruct->childrenWorklistPointer = childrenWorklistPointer;
-    trainingInitStruct->currentPlayer = currentPlayer;
-    trainingInitStruct->cumulativeRegrets = cummulativeRegrets;
-    trainingInitStruct->policy = policy;
-    trainingInitStruct->reachProbabilitiesLocal = reachProbabilitiesLocal;
-    trainingInitStruct->children = children;
-    trainingInitStruct->otherPlayer = otherPlayer;
-
-    return trainingInitStruct;
-}
+//__device__ TrainingInitStruct* getInitStructGPU(DeviceStructureList* dsl, int i) {
+//    int policyPointer = dsl->policyPointers[i];
+//    int numChildren = dsl->numChildren[i];
+//    int childrenWorklistPointer = dsl->childrenWorklistPointers[i];
+//
+//    int currentPlayer = dsl->player0[i] ? 0 : 1;
+//    float* cummulativeRegrets = dsl->player0[i] ? dsl->cumulativeRegrets0 + policyPointer : dsl->cumulativeRegrets1 + policyPointer;
+//
+//    float* policy = dsl->player0[i] ? dsl->policy0 + policyPointer : dsl->policy1 + policyPointer;
+//
+//    float* reachProbabilitiesLocal = dsl->reachProbabilities + (i * 2);
+//    int* children = dsl->worklist + childrenWorklistPointer;
+//    int otherPlayer = 1 - currentPlayer;
+//
+//    auto trainingInitStruct = new TrainingInitStruct();
+//
+//    trainingInitStruct->policyPointer = policyPointer;
+//    trainingInitStruct->numChildren = numChildren;
+//    trainingInitStruct->childrenWorklistPointer = childrenWorklistPointer;
+//    trainingInitStruct->currentPlayer = currentPlayer;
+//    trainingInitStruct->cumulativeRegrets = cummulativeRegrets;
+//    trainingInitStruct->policy = policy;
+//    trainingInitStruct->reachProbabilitiesLocal = reachProbabilitiesLocal;
+//    trainingInitStruct->children = children;
+//    trainingInitStruct->otherPlayer = otherPlayer;
+//
+//    return trainingInitStruct;
+//}
 
 __global__ void setReachProbsAndPolicy(DeviceStructureList* dsl) {
 
@@ -451,14 +457,12 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
 
     int* children = dsl->worklist + childrenWorklistPointer;
 
-    float* upstreamPayoffs = new float[numChildren];
-
     float nodeUtility = 0.f;
     for (int j = 0; j < numChildren; j++) {
 
-        upstreamPayoffs[j] = -dsl->payoff[children[j]];
+        dsl->upstreamPayoffs[children[j]] = -dsl->payoff[children[j]];
 
-        nodeUtility += policy[j] * upstreamPayoffs[j];
+        nodeUtility += policy[j] * dsl->upstreamPayoffs[children[j]];
 
     }
 
@@ -472,11 +476,9 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
 
     float* cumulativeRegrets = dsl->player0[id] ? dsl->cumulativeRegrets0 + policyPointer : dsl->cumulativeRegrets1 + policyPointer;
     for (int j = 0; j < numChildren; j++) {
-        float counterActionValue = upstreamPayoffs[j];
+        float counterActionValue = dsl->upstreamPayoffs[children[j]];
         cumulativeRegrets[j] = cumulativeRegrets[j] + fmaxf(0.f, reachProbabilitiesLocal[otherPlayer] * (counterActionValue - counterValue));
     }
-
-    free(upstreamPayoffs);
 }
 
 struct GetIndexReturnType {
@@ -526,8 +528,6 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     }
     else {
         setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
     }
 
     //c_1) prepare strategie laden
@@ -570,7 +570,8 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
         }
     }
 
-    cudaDeviceSynchronize();
+    // cudaDeviceSynchronize is not needed here, as the prev. kernel only writes payoffs and payoffs are first needed at d), furthermore is cudaMEmpy synchronous, so cudaDeviceSyncrhonize is not needed here aswell.
+    //gpuErrchk(cudaDeviceSynchronize());
 
     //c_2) forwardpass: setze reach probabilities
     schablone->structureList->reachProbabilities[0] = 1.f;
@@ -605,6 +606,9 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
         }
         
     }
+
+    //cudaDeviceSynchronize needed for kernel in b), but implicit in c_2)
+    //gpuErrchk(cudaDeviceSynchronize());
 
     //d_1) backwardpass: setze regrets
     for (int i = levelPointers.size() - 1; i >= 0; i--) {

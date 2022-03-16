@@ -54,22 +54,22 @@ void benchmark() {
     Logger::logBenchmark(1, iterations, bucketCount, initStart, trainStart, trainFinish, result.winCounters.at(0), result.payoffCounters.at(0));
 }
 
-void clearFiles(std::string prefix) {
+void clearFiles() {
     using std::remove;
 
-    remove((prefix + "blueprint_buckets_0").c_str());
-    remove((prefix + "blueprint_buckets_1").c_str());
-    remove((prefix + "blueprint_buckets_2").c_str());
-    remove((prefix + "blueprint_buckets_3").c_str());
+    remove("blueprint_buckets_0");
+    remove("blueprint_buckets_1");
+    remove("blueprint_buckets_2");
+    remove("blueprint_buckets_3");
 
-    remove((prefix + "blueprint00").c_str());
-    remove((prefix + "blueprint01").c_str());
-    remove((prefix + "blueprint10").c_str());
-    remove((prefix + "blueprint11").c_str());
-    remove((prefix + "blueprint20").c_str());
-    remove((prefix + "blueprint21").c_str());
-    remove((prefix + "blueprint30").c_str());
-    remove((prefix + "blueprint31").c_str());
+    remove("blueprint00");
+    remove("blueprint01");
+    remove("blueprint10");
+    remove("blueprint11");
+    remove("blueprint20");
+    remove("blueprint21");
+    remove("blueprint30");
+    remove("blueprint31");
 }
 
 std::string getOptions(std::vector<string> options) {
@@ -81,7 +81,7 @@ std::string getOptions(std::vector<string> options) {
 }
 
 void clear() {
-    clearFiles("");
+    clearFiles();
     cout << "cleared successfully" << endl;
    /* int deviceOption;
 
