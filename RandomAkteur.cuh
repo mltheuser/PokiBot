@@ -9,7 +9,7 @@ public:
     Template* schablone;
 
     ~RandomAkteur();
-    RandomAkteur(std::string path);
+    RandomAkteur(std::string folder, std::string fileName);
     std::pair<char, float> act(InformationSet* informationSet) override;
 };
 

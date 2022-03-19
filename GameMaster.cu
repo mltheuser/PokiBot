@@ -3,36 +3,53 @@
 #include "SolverA.cuh"
 
 
-GameMaster::GameMaster(std::string path) {
-    this->path = path;
+GameMaster::GameMaster(std::string folder, std::string fileName) {
+    this->folder = folder;
+    this->fileName = fileName;
 }
 
-PlayResult GameMaster::playBlueprintVersusRandom(int iterations) {
-    Template* schablone = Template::createDefaultTemplate(path);
+PlayResult* GameMaster::playBlueprintVersusRandom(int iterations) {
+    Template* schablone = Template::createDefaultTemplate(folder, fileName);
 
-    BlueprintAkteur* blueprintAkteur = new BlueprintAkteur(path);
-    RandomAkteur* randomAkteur = new RandomAkteur(path);
+    BlueprintAkteur* blueprintAkteur = new BlueprintAkteur(folder, fileName);
+    RandomAkteur* randomAkteur = new RandomAkteur(folder, fileName);
+
     vector<Akteur*> akteure = { blueprintAkteur, randomAkteur };
+    vector<Akteur*> rematchAkteure = { randomAkteur, blueprintAkteur };
 
-    PlayResult playResult = PlayResult();
 
-    
+    PlayResult* playResult = new PlayResult();
+
+    Logger::logToConsole("Play start");
     for (int i = 0; i < iterations; i++) {
-        //if (i % 1000 == 0) Logger::logIteration(i);
+        if (i % 10000 == 0) Logger::logIteration(i);
 
         vector<std::string> cards = getCards();
 
         std::pair<int, float> result = play(schablone, cards, akteure);
         int winner = result.first;
         float payoff = result.second;
+        std::pair<int, float> rematchResult = play(schablone, cards, rematchAkteure);
+        int rematchWinner = rematchResult.first;
+        float rematchPayoff = rematchResult.second;
+
         
         if (winner < 0) {
             continue;
         }
         else {
-            playResult.winCounters.at(winner)++;
-            playResult.payoffCounters.at(winner) += payoff;
-            playResult.payoffCounters.at((winner + 1) % 2) -= payoff;
+            playResult->winCounters.at(winner)++;
+            playResult->payoffCounters.at(winner) += payoff;
+            playResult->payoffCounters.at((winner + 1) % 2) -= payoff;
+        }
+
+        if (rematchWinner < 0) {
+            continue;
+        }
+        else {
+            playResult->rematchWinCounters.at(rematchWinner)++;
+            playResult->rematchPayoffCounters.at(rematchWinner) += rematchPayoff;
+            playResult->rematchPayoffCounters.at((rematchWinner + 1) % 2) -= rematchPayoff;
         }
     }
     
@@ -101,18 +118,51 @@ std::pair<int, float> GameMaster::play(Template* schablone, vector<std::string> 
     delete informationSet;
 }
 
-void GameMaster::playBlueprintVersusBlueprint(int iterations) {
-    Template* schablone = Template::createDefaultTemplate(path);
+PlayResult* GameMaster::playBlueprintVersusBlueprint(int iterations) {
+    Template* schablone = Template::createDefaultTemplate(folder, fileName);
 
-    BlueprintAkteur* blueprintAkteur1 = new BlueprintAkteur(path);
-    BlueprintAkteur* blueprintAkteur2 = new BlueprintAkteur(path);
-    vector<Akteur*> akteure = { blueprintAkteur1, blueprintAkteur2 };
+    BlueprintAkteur* blueprintAkteur = new BlueprintAkteur(folder, fileName);
+    BlueprintAkteur* comparisonBlueprintAkteur = new BlueprintAkteur(folder, "comparison_" + fileName);
 
-    vector<std::string> cards = getCards();
+    vector<Akteur*> akteure = { blueprintAkteur, comparisonBlueprintAkteur };
+    vector<Akteur*> rematchAkteure = { comparisonBlueprintAkteur, blueprintAkteur };
 
-    play(schablone, cards, akteure);
+    PlayResult* playResult = new PlayResult();
 
-    delete blueprintAkteur1;
-    delete blueprintAkteur2;
+    for (int i = 0; i < iterations; i++) {
+        //if (i % 1000 == 0) Logger::logIteration(i);
+
+        vector<std::string> cards = getCards();
+
+        std::pair<int, float> result = play(schablone, cards, akteure);
+        std::pair<int, float> rematchResult = play(schablone, cards, rematchAkteure);
+        int winner = result.first;
+        float payoff = result.second;
+        int rematchWinner = rematchResult.first;
+        float rematchPayoff = rematchResult.second;
+
+        if (winner < 0) {
+            continue;
+        }
+        else {
+            playResult->winCounters.at(winner)++;
+            playResult->payoffCounters.at(winner) += payoff;
+            playResult->payoffCounters.at((winner + 1) % 2) -= payoff;
+        }
+
+        if (rematchWinner < 0) {
+            continue;
+        }
+        else {
+            playResult->rematchWinCounters.at(rematchWinner)++;
+            playResult->rematchPayoffCounters.at(rematchWinner) += rematchPayoff;
+            playResult->rematchPayoffCounters.at((rematchWinner + 1) % 2) -= rematchPayoff;
+        }
+    }
+
+    delete blueprintAkteur;
+    delete comparisonBlueprintAkteur;
     delete schablone;
+
+    return playResult;
 }

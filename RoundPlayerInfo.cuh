@@ -11,6 +11,6 @@ public:
     BucketFunction* bucketFunction;
     BlueprintHandler* blueprintHandler;
 
-    RoundPlayerInfo(int startPointTemplate, int elementSize, BucketFunction* bucketFunction, int round, int player);
+    RoundPlayerInfo(std::string folder, std::string fileName, int startPointTemplate, int elementSize, BucketFunction* bucketFunction, int round, int player);
 };
 #endif

@@ -12,6 +12,13 @@ using std::string;
 using std::cout;
 using std::endl;
 
+struct PlayResult {
+    vector<int> winCounters = { 0, 0 };
+    vector<float> payoffCounters = { 0.f, 0.f };
+    vector<int> rematchWinCounters = { 0, 0 };
+    vector<float> rematchPayoffCounters = { 0.f, 0.f };
+};
+
 class Logger {
 public:
     static void logToConsole(string logText) {
@@ -31,42 +38,60 @@ public:
     static void throwRuntimeError(string errorText) {
         logToConsole(errorText);
         logToFile(errorText);
-        throw std::runtime_error("errorText");
+        throw std::runtime_error(errorText);
     }
 
-    static void logBenchmark(int deviceOption, int iterations, int bucketCount, const std::chrono::system_clock::time_point& initStart, const std::chrono::system_clock::time_point& trainStart, const std::chrono::system_clock::time_point& trainEnd, float winsPlayer0, float payoffPlayer0) {
-        std::string path = "benchmark.txt";
+    static void initBenchmark(string folder, string fileName, std::string device, int blocksize, const std::vector<float> raiseSizes, int trainIterations, int maxIterations, int playIterations) {
+        std::string path = folder + "/" + fileName + ".txt";
+        std::ofstream write;
+        write.open(path.c_str(), std::ios::out | std::ios::app);
+        write << "BENCHMARKING started: device = " << device << ", blocksize = " << blocksize << ", raiseSizes = { ";
+        for (auto raise : raiseSizes) {
+            write << raise << " ";
+        }
+        write << "} trainIterations = " << trainIterations << ", maxIterations = " << maxIterations << ", playIterations = "<< playIterations << "\n";
+        write << "iterations, bucketCount, fileSize, initTime, trainTime, W, L, D, WinPercentageNoDraw, NORMALIZED PAYOFF, REMATCH W, REMATCH L, REMATCH D, REMATCH WinPercentageNoDraw, REMATCH NORMALIZED PAYOFF" << "\n";
+        write.close();
+    }
+
+    static void logBenchmark(string folder, string fileName, int currentIteration, int playIterations, std::string fileSize, int bucketCount, const std::chrono::system_clock::time_point& initStart, const std::chrono::system_clock::time_point& trainStart, const std::chrono::system_clock::time_point& trainEnd, PlayResult* result) {
+        std::string path = folder + "/" + fileName + ".txt";
         std::ofstream write;
 
         auto initTime = std::chrono::duration_cast<std::chrono::milliseconds>(trainStart - initStart).count();
         auto trainTime = std::chrono::duration_cast<std::chrono::milliseconds>(trainEnd - trainStart).count();
 
-        write.open(path.c_str(), std::ios::out | std::ios::binary | std::ios::app);
+        int player0Wins = result->winCounters.at(0);
+        int player1Wins = result->winCounters.at(1);
+        int draws = playIterations - player0Wins - player1Wins;
+        int iterationsWithWinner = playIterations - draws;
+        float player0Payoffs = result->payoffCounters.at(0);
+        float player1Payoffs = result->payoffCounters.at(1);
 
-        //TODO filesize
+        int rematchPlayer0Wins = result->rematchWinCounters.at(1);
+        int rematchPlayer1Wins = result->rematchWinCounters.at(0);
+        int rematchDraws = playIterations - rematchPlayer0Wins - rematchPlayer1Wins;
+        int rematchIterationsWithWinner = playIterations - rematchDraws;
+        float rematchPlayer0Payoffs = result->rematchPayoffCounters.at(1);
+        float rematchPlayer1Payoffs = result->rematchPayoffCounters.at(0);
 
-        char* deviceOptionChar = (char*)&deviceOption;
-        write.write(deviceOptionChar, sizeof(int));
+        float winPercentagePlayer0 = (static_cast<float>(player0Wins) / static_cast<float>(playIterations));
+        float loosePercentagePlayer0 = (static_cast<float>(player1Wins) / static_cast<float>(playIterations));
+        float drawPercentage = (static_cast<float>(draws) / static_cast<float>(playIterations));
+        float winPercentagePlayer0NoDraws = (static_cast<float>(player0Wins) / static_cast<float>(iterationsWithWinner));
 
-        char* iterationsChar = (char*)&iterations;
-        write.write(iterationsChar, sizeof(int));
+        vector<float> normalizedPayoffCounters = { player0Payoffs / playIterations, player1Payoffs / playIterations };
 
-        char* bucketCountChar = (char*)&bucketCount;
-        write.write(bucketCountChar, sizeof(int));
+        float rematchWinPercentagePlayer0 = (static_cast<float>(rematchPlayer0Wins) / static_cast<float>(playIterations));
+        float rematchLoosePercentagePlayer0 = (static_cast<float>(rematchPlayer1Wins) / static_cast<float>(playIterations));
+        float rematchDrawPercentage = (static_cast<float>(rematchDraws) / static_cast<float>(playIterations));
+        float rematchWinPercentagePlayer0NoDraws = (static_cast<float>(rematchPlayer0Wins) / static_cast<float>(rematchIterationsWithWinner));
 
-        char* initTimeChar = (char*)&initTime;
-        write.write(initTimeChar, sizeof(int));
+        vector<float> rematchNormalizedPayoffCounters = { rematchPlayer0Payoffs / playIterations, rematchPlayer1Payoffs / playIterations };
 
-        char* trainTimeChar = (char*)&trainTime;
-        write.write(trainTimeChar, sizeof(int));
+        write.open(path.c_str(), std::ios::out | std::ios::app);
 
-        //TODO umrechnen in winrate
-        char* winrateChar = (char*)&winsPlayer0;
-        write.write(winrateChar, sizeof(float));
-
-        //TODO normalisieren?
-        char* payoffChar = (char*)&payoffPlayer0;
-        write.write(payoffChar, sizeof(float));
+        write << currentIteration << "," << bucketCount << "," << fileSize << "," << initTime << "," << trainTime << "," << winPercentagePlayer0 << "," << loosePercentagePlayer0 << "," << drawPercentage << "," <<  winPercentagePlayer0NoDraws << ", " << normalizedPayoffCounters.at(0) << "," << rematchWinPercentagePlayer0 << "," << rematchLoosePercentagePlayer0 << "," << rematchDrawPercentage << "," << rematchWinPercentagePlayer0NoDraws << ", " << rematchNormalizedPayoffCounters.at(0) << "\n";
 
         write.close();
     }
@@ -98,15 +123,47 @@ public:
         logToFile(log.str());
     }
 
-    static void logPlay(int player0Wins, int player1Wins, float player0Payoffs, float player1Payoffs, int iterations) {
+    static void logPlay(PlayResult* result, int iterations) {
         std::ostringstream log;
 
-        float winPercentage = (static_cast<float>(player0Wins) / static_cast<float>(player0Wins + player1Wins));
+        int player0Wins = result->winCounters.at(0);
+        int player1Wins = result->winCounters.at(1);
+        int draws = iterations - player0Wins - player1Wins;
+        int iterationsWithWinner = iterations - draws;
+        float player0Payoffs = result->payoffCounters.at(0);
+        float player1Payoffs = result->payoffCounters.at(1);
+
+        int rematchPlayer0Wins = result->rematchWinCounters.at(1);
+        int rematchPlayer1Wins = result->rematchWinCounters.at(0);
+        int rematchDraws = iterations - rematchPlayer0Wins - rematchPlayer1Wins;
+        int rematchIterationsWithWinner = iterations - rematchDraws;
+        float rematchPlayer0Payoffs = result->rematchPayoffCounters.at(1);
+        float rematchPlayer1Payoffs = result->rematchPayoffCounters.at(0);
+
+        float winPercentagePlayer0 = (static_cast<float>(player0Wins) / static_cast<float>(iterations));
+        float winPercentagePlayer1 = (static_cast<float>(player1Wins) / static_cast<float>(iterations));
+        float drawPercentage = (static_cast<float>(draws) / static_cast<float>(iterations));
+        float winPercentagePlayer0NoDraws = (static_cast<float>(player0Wins) / static_cast<float>(iterationsWithWinner));
+
         vector<float> normalizedPayoffCounters = { player0Payoffs / iterations, player1Payoffs / iterations };
 
-        log << "Wins P0: " << player0Wins << " || Wins P1: " << player1Wins << endl;
-        log << "P0 hat eine Winrate von: " << winPercentage << " auf " << iterations << " Iterationen" << endl;
-        log << "Payoff P0: " << player0Payoffs << "(Normalisiert: " << normalizedPayoffCounters.at(0) << ") Payoff P1: " << player1Wins << "(Normalisiert: " << normalizedPayoffCounters.at(1) << ")" << endl;
+        float rematchWinPercentagePlayer0 = (static_cast<float>(rematchPlayer0Wins) / static_cast<float>(iterations));
+        float rematchWinPercentagePlayer1 = (static_cast<float>(rematchPlayer1Wins) / static_cast<float>(iterations));
+        float rematchDrawPercentage = (static_cast<float>(rematchDraws) / static_cast<float>(iterations));
+        float rematchWinPercentagePlayer0NoDraws = (static_cast<float>(rematchPlayer0Wins) / static_cast<float>(rematchIterationsWithWinner));
+
+        vector<float> rematchNormalizedPayoffCounters = { rematchPlayer0Payoffs / iterations, rematchPlayer1Payoffs / iterations };
+
+
+        log << "W/L/D: "  << winPercentagePlayer0 << "/" << winPercentagePlayer1 << "/" << drawPercentage << endl;
+
+        log << "PAYOFF: " << player0Payoffs << "( NORMALIZED: " << normalizedPayoffCounters.at(0) << " )" << endl;
+
+        log << "\n" << "REMATCH(Player 0 playing in second position) : \n";
+
+        log << "W/L/D: " << rematchWinPercentagePlayer0 << "/" << rematchWinPercentagePlayer1 << "/" << rematchDrawPercentage << endl;
+
+        log << "PAYOFF: " << rematchPlayer0Payoffs << "( NORMALIZED: " << rematchNormalizedPayoffCounters.at(0) << " )" << endl;
 
         logToConsole(log.str());
         logToFile(log.str());
@@ -116,9 +173,10 @@ public:
         std::ostringstream log;
 
         auto trainTime = std::chrono::duration_cast<std::chrono::milliseconds>(trainFinish - trainStart).count();
+        auto trainTimeSeconds = std::chrono::duration_cast<std::chrono::seconds>(trainFinish - trainStart).count();
         auto timePerIteration = trainTime / static_cast<float>(iterations);
 
-        log << "Trainiert in: " << trainTime << " ms (" << timePerIteration << " ms pro Iteration)" << endl;
+        log << iterations << " Iterationen trainiert in: " << trainTime << " ms [" << trainTimeSeconds << "s, "  << timePerIteration << " ms/iteration]" << endl;
         
         logToConsole(log.str());
         logToFile(log.str());

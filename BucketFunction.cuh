@@ -10,13 +10,14 @@ public:
     int round;
     size_t size;
 
-    std::string path;
+    std::string folder;
+    std::string fileName;
 
     /**
      * Die BucketFunction ist eine Sortierte (sortierte handkarten + sortierte flop karten + turn karte + river karte) Liste aller Möglicher Buckets einer BettingRound (0-3).
      * Die Position der Representation eines Bucktes in der Liste ist die Position an der der Bucket abgespeichert wurde.
      */
-    BucketFunction(std::string path, int round, size_t size);
+    BucketFunction(std::string folder, std::string fileName, int round, size_t size);
 
     void loadBucketFunction();
 

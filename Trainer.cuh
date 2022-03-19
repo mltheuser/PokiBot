@@ -10,7 +10,7 @@
 using std::vector;
 using std::string;
 
-constexpr bool gDebug = true;
+constexpr bool gDebug = false;
 constexpr auto BLOCKSIZE = 1024;
 
 struct DeviceStructureList {
@@ -51,7 +51,7 @@ public:
     vector<double> elapsedCpuTimes = { 0.0, 0.0, 0.0 };
     vector<double> elapsedMemcpyTimes = { 0.0 };
 
-    TexasHoldemTrainer(string path);
+    TexasHoldemTrainer(string folder, string fileName);
     ~TexasHoldemTrainer();
 
     void trainCPU(vector<vector<string>>* playerCards);

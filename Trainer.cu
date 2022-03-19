@@ -18,9 +18,9 @@ TexasHoldemTrainer::~TexasHoldemTrainer() {
     delete schablone;
 }
 
-TexasHoldemTrainer::TexasHoldemTrainer(string path) {
+TexasHoldemTrainer::TexasHoldemTrainer(string folder, string fileName) {
     blueprintHandler = nullptr;
-    schablone = Template::createDefaultTemplate(path);
+    schablone = Template::createDefaultTemplate(folder, fileName);
 }
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }

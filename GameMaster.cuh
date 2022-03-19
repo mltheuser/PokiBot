@@ -3,22 +3,18 @@
 
 #include "BlueprintAkteur.cuh"
 #include "RandomAkteur.cuh"
-//#include "Logger.cuh"
+#include "Logger.cuh"
 
 #include <string>
 
-struct PlayResult {
-    vector<int> winCounters = { 0, 0 };
-    vector<float> payoffCounters = { 0.f, 0.f };
-};
-
 class GameMaster {
 public:
-    std::string path;
+    std::string folder;
+    std::string fileName;
 
-    GameMaster(std::string path);
-    void playBlueprintVersusBlueprint(int iterations);
-    PlayResult playBlueprintVersusRandom(int iterations);
+    GameMaster(std::string folder, std::string fileName);
+    PlayResult* playBlueprintVersusBlueprint(int iterations);
+    PlayResult* playBlueprintVersusRandom(int iterations);
     std::pair<int, float> play(Template* schablone, vector<std::string> cards, vector<Akteur*> akteure);
 };
 

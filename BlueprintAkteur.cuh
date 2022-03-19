@@ -12,7 +12,7 @@ public:
     Template* schablone;
 
     ~BlueprintAkteur();
-    BlueprintAkteur(std::string path);
+    BlueprintAkteur(std::string folder, std::string fileName);
     std::pair<char, float> act(InformationSet* informationSet) override;
 };
 

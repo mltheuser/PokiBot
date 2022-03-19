@@ -15,8 +15,9 @@ std::map<char, int> ranksMap = {
         {'2',0},{'3',1},{'4',2},{'5',3},{'6',4},{'7',5},{'8',6},{'9',7},{'T',8},{'J',9},{'Q',10},{'K',11},{'A',12}
 };
 
-BucketFunction::BucketFunction(std::string path, int round, size_t size) {
-    this->path = path;
+BucketFunction::BucketFunction(std::string folder, std::string fileName, int round, size_t size) {
+    this->folder = folder,
+    this->fileName = fileName;
     this->round = round;
     //Anzahl der Karten, nicht Anzahl der Chars
     this->size = size;
@@ -27,7 +28,7 @@ BucketFunction::BucketFunction(std::string path, int round, size_t size) {
 void BucketFunction::loadBucketFunction() {
     std::ifstream t;
     int length;
-    t.open(path);      // open input file
+    t.open(folder + "/" + fileName);      // open input file
 
     if (!t.good()) {
         //No file found
@@ -51,7 +52,7 @@ void BucketFunction::saveBucketFunction() {
     }
     char* bucketListArray = &bucketList[0];
 
-    std::ofstream out(path);
+    std::ofstream out(folder + "/" + fileName);
     out.write(bucketListArray, bucketList.size() * sizeof(char));
     out.close();
 }
@@ -64,7 +65,7 @@ char indexToRank[13] = { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 
 
 std::vector<char> BucketFunction::bucketCardsToNumbersNeglectStreetsAndFlushes(std::vector<std::string>* cards) {
     //high card = drei klassen (L, M, H)
-    //p‰‰rchen genauso
+    //Paare genauso
     //H: {A, K, Q, J}
     //M: {T, 9, 8}
     //L:{2, 3, 4, 5, 6, 7}

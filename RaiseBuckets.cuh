@@ -6,7 +6,7 @@
 #include <algorithm>
 
 //require aufsteigend sortiert
-const std::vector<float> raiseSizes = { 1, 2, 4, 8};
+const std::vector<float> raiseSizes = { 1, 2 };
 
 std::vector<std::pair<char, float>> getRaises();
 
