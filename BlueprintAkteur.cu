@@ -10,8 +10,8 @@ BlueprintAkteur::~BlueprintAkteur() {
     delete schablone;
 }
 
-BlueprintAkteur::BlueprintAkteur(std::string path) {
-    schablone = Template::createDefaultTemplate(path);
+BlueprintAkteur::BlueprintAkteur(std::string folder, std::string fileName) {
+    schablone = Template::createDefaultTemplate(folder, fileName);
 }
 
 std::pair<char, float> BlueprintAkteur::act(InformationSet* informationSet) {

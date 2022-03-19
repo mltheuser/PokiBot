@@ -1,13 +1,15 @@
 #include "BlueprintHandler.cuh"
 
+
+#include "Logger.cuh"
 #include <iostream>
 
-std::string getPath(int round, int player) {
-    return "blueprint" + std::to_string(round) + std::to_string(player);
+std::string getPath(std::string folder, std::string fileName, int round, int player) {
+    return folder + "/" + fileName + std::to_string(round) + std::to_string(player);
 }
 
-BlueprintHandler::BlueprintHandler(int round, int player) {
-    path = getPath(round, player);
+BlueprintHandler::BlueprintHandler(std::string folder, std::string fileName, int round, int player) {
+    path = getPath(folder, fileName, round, player);
     if (!blueprintExists(path)) {
         createBlueprint(path);
     }
@@ -18,12 +20,12 @@ BlueprintHandler::BlueprintHandler(int round, int player) {
     ifStream = std::move(pIfStream);
 }
 
-bool BlueprintHandler::blueprintExists(std::string path) {
-    std::ifstream f(path.c_str());
+bool BlueprintHandler::blueprintExists(string path) {
+    std::ifstream f(path);
     return f.good();
 }
 
-void BlueprintHandler::createBlueprint(std::string path) {
+void BlueprintHandler::createBlueprint(string path) {
     char* empty = {};
 
     std::ofstream out(path);
@@ -34,7 +36,7 @@ void BlueprintHandler::createBlueprint(std::string path) {
 
 float* BlueprintHandler::readPolicies(int pos, int size) {
     if (!ifStream.is_open()) {
-        //Logger::throwRuntimeError("Input stream nicht mehr offen!");
+        Logger::throwRuntimeError("Input stream nicht mehr offen!");
     }
 
     char* buffer = new char[size];
@@ -51,7 +53,7 @@ float* BlueprintHandler::readPolicies(int pos, int size) {
  */
 void BlueprintHandler::writePolicies(int pos, int size, float* policies) {
     if (!ofStream.is_open()) {
-        //Logger::throwRuntimeError("Output stream nicht mehr offen!");
+        Logger::throwRuntimeError("Output stream nicht mehr offen!");
     }
 
     ofStream.seekp(pos * size, std::ios_base::beg);
@@ -61,4 +63,9 @@ void BlueprintHandler::writePolicies(int pos, int size, float* policies) {
     ofStream.write(charPolicies, size);
 
     ofStream.flush();
+}
+
+std::string BlueprintHandler::getFileSize() {
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+    return std::to_string(file.tellg());
 }

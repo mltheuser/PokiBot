@@ -1,27 +1,27 @@
 #ifndef __BlueprintHandler__
 #define __BlueprintHandler__
 
-//#include "Logger.cuh"
-
 #include <fstream>
 #include <string>
 #include <vector>
 
 using std::vector;
+using std::string;
 
 class BlueprintHandler {
 public:
-    std::string path;
+    string path;
     std::ofstream ofStream;
     std::ifstream ifStream;
 
 
-    BlueprintHandler(int round, int player);
+    BlueprintHandler(string folder, string fileName, int round, int player);
 
-    bool blueprintExists(std::string path);
-    void createBlueprint(std::string path);
+    bool blueprintExists(string path);
+    void createBlueprint(string path);
     float* readPolicies(int pos, int size);
     void writePolicies(int pos, int size, float* policies);
+    string getFileSize();
 };
 
 #endif

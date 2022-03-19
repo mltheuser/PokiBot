@@ -59,9 +59,9 @@ public:
     Template(StructureList* structureList, vector<vector<RoundPlayerInfo>> roundInfos, vector<float*> cumulativeRegrets);
     Template(Template* schablone);
 
-    static void createBucketFunctions(std::string path, vector<BucketFunction*>* bucketFunctions);
+    static void createBucketFunctions(std::string folder, std::string fileName, vector<BucketFunction*>* bucketFunctions);
     static struct BuildTreeReturnType buildTree();
-    static Template* createDefaultTemplate(std::string path);
+    static Template* createDefaultTemplate(std::string folder, std::string fileName);
 
 };
 #endif

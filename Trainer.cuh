@@ -1,25 +1,17 @@
 #ifndef __Trainer__
 #define __Trainer__
 
-#include "BucketFunction.cuh"
 #include "Template.cuh"
-#include "GameState.cuh"
 #include "Utils.cuh"
 
-#include <map>
-#include <vector>
-#include <string>
-#include <numeric>
-#include <random>
-#include <iostream>
-#include <mutex>
-#include <list>
+#include<vector>
+#include<string>
 
 using std::vector;
 using std::string;
-using std::map;
 
-constexpr auto BLOCKSIZE = 512;
+constexpr bool gDebug = false;
+constexpr auto BLOCKSIZE = 1024;
 
 struct DeviceStructureList {
     DeviceStructureList* Dself = nullptr;
@@ -46,6 +38,8 @@ struct DeviceStructureList {
     float* cumulativeRegrets1;
     float* policy0;
     float* policy1;
+
+    float* upstreamPayoffs;
 };
 
 class TexasHoldemTrainer {
@@ -53,12 +47,19 @@ public:
     Template* schablone;
     BlueprintHandler* blueprintHandler;
 
-    TexasHoldemTrainer(std::string path);
+    vector<double> elapsedKernelTimes = { 0.0, 0.0, 0.0 };
+    vector<double> elapsedCpuTimes = { 0.0, 0.0, 0.0 };
+    vector<double> elapsedMemcpyTimes = { 0.0 };
+
+    TexasHoldemTrainer(string folder, string fileName);
     ~TexasHoldemTrainer();
 
     void trainCPU(vector<vector<string>>* playerCards);
     void trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
     void trainSequentiell(int numIterations, bool useGpu);
+
+    void writeStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
+    void loadStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
 };
 
 #endif

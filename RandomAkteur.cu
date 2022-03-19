@@ -11,8 +11,8 @@ RandomAkteur::~RandomAkteur() {
     delete schablone;
 }
 
-RandomAkteur::RandomAkteur(std::string path) {
-    schablone = Template::createDefaultTemplate(path);
+RandomAkteur::RandomAkteur(std::string folder, std::string fileName) {
+    schablone = Template::createDefaultTemplate(folder, fileName);
 }
 
 std::pair<char, float> RandomAkteur::act(InformationSet* informationSet) {

@@ -1,4 +1,6 @@
-﻿
+﻿#ifndef __main__
+#define __main__
+
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 
@@ -7,6 +9,7 @@
 #include "Trainer.cuh"
 #include "GameMaster.cuh"
 #include "Logger.cuh"
+#include "RaiseBuckets.cuh"
 
 #include <cstdio>
 #include <vector>
@@ -18,28 +21,73 @@ using std::endl;
 using std::cin;
 using std::vector;
 
-vector<string> CONSOLE_OPTIONS = { "clear", "train", "play", "exit" };
+vector<string> CONSOLE_OPTIONS = { "clear", "train", "play", "benchmark", "exit" };
 vector<string> DEVICE_OPTIONS = { "cpu", "gpu" };
 vector<string> PLAY_OPTIONS = { "vsRandom" };
 string GET_ITERATIONS = "Input number of iterations: ";
 string GET_WRONG_INPUT = "Falsche Eingabe ... zurück zur Hauptauswahl";
+string FOLDER = "outputs";
 
-void clearFiles(std::string prefix) {
+void clearFiles(std::string folder, std::string filePrefix) {
     using std::remove;
 
-    remove((prefix + "blueprint_buckets_0").c_str());
-    remove((prefix + "blueprint_buckets_1").c_str());
-    remove((prefix + "blueprint_buckets_2").c_str());
-    remove((prefix + "blueprint_buckets_3").c_str());
+    remove((folder + "/" + filePrefix + "_buckets_0").c_str());
+    remove((folder + "/" + filePrefix + "_buckets_1").c_str());
+    remove((folder + "/" + filePrefix + "_buckets_2").c_str());
+    remove((folder + "/" + filePrefix + "_buckets_3").c_str());
 
-    remove((prefix + "blueprint00").c_str());
-    remove((prefix + "blueprint01").c_str());
-    remove((prefix + "blueprint10").c_str());
-    remove((prefix + "blueprint11").c_str());
-    remove((prefix + "blueprint20").c_str());
-    remove((prefix + "blueprint21").c_str());
-    remove((prefix + "blueprint30").c_str());
-    remove((prefix + "blueprint31").c_str());
+    remove((folder + "/" + filePrefix + "00").c_str());
+    remove((folder + "/" + filePrefix + "00").c_str());
+
+    remove((folder + "/" + filePrefix + "00").c_str());
+    remove((folder + "/" + filePrefix + "00").c_str());
+
+    remove((folder + "/" + filePrefix + "00").c_str());
+    remove((folder + "/" + filePrefix + "00").c_str());
+
+    remove((folder + "/" + filePrefix + "00").c_str());
+    remove((folder + "/" + filePrefix + "00").c_str());
+}
+
+void benchmark() {
+    clearFiles(FOLDER, "blueprint");
+    int trainIterations = 10000;
+    int maxIterations = 500000;
+    int playIterations = 100000;
+    Logger::initBenchmark(FOLDER, "benchmark", DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, trainIterations, maxIterations, playIterations);
+    for (int currentIteration = trainIterations; currentIteration < maxIterations; currentIteration+= trainIterations) {
+        std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
+        //gpu
+        Logger::logStart(DEVICE_OPTIONS.at(1), BLOCKSIZE, trainIterations);
+
+        initStart = std::chrono::system_clock::now();
+        TexasHoldemTrainer trainer = TexasHoldemTrainer(FOLDER, "blueprint");
+        trainStart = std::chrono::system_clock::now();
+        Logger::logInit(initStart, trainStart);
+
+        trainer.trainSequentiell(trainIterations, true);
+        trainFinish = std::chrono::system_clock::now();
+        Logger::logTraining(trainStart, trainFinish, trainIterations);
+
+        GameMaster gameMaster = GameMaster(FOLDER, "blueprint");
+        //PlayResult* result = gameMaster.playBlueprintVersusRandom(playIterations);
+        PlayResult* result = gameMaster.playBlueprintVersusBlueprint(playIterations);
+
+        Logger::logPlay(result, playIterations);
+
+        trainer.schablone->roundInfos.at(3).at(0).bucketFunction->loadBucketFunction();
+        size_t bucketListSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->bucketList.size();
+        size_t bucketSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->size * 2;
+        size_t bucketCount = bucketListSize / bucketSize;
+
+        std::string fileSize = trainer.schablone->roundInfos.at(3).at(0).blueprintHandler->getFileSize();
+
+        Logger::logBenchmark(FOLDER, "benchmark", currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result);
+
+        free(result);
+    }
+
+    
 }
 
 std::string getOptions(std::vector<string> options) {
@@ -51,7 +99,7 @@ std::string getOptions(std::vector<string> options) {
 }
 
 void clear() {
-    clearFiles("");
+   clearFiles(FOLDER, "blueprint");
     cout << "cleared successfully" << endl;
    /* int deviceOption;
 
@@ -77,10 +125,13 @@ void play() {
 
     cout << GET_ITERATIONS;
     cin >> iterations;
-    GameMaster gameMaster = GameMaster("blueprint");
-    PlayResult result = gameMaster.playBlueprintVersusRandom(iterations);
+    GameMaster gameMaster = GameMaster(FOLDER, "blueprint");
+    //PlayResult* result = gameMaster.playBlueprintVersusRandom(iterations);
+    PlayResult* result = gameMaster.playBlueprintVersusBlueprint(iterations);
 
-    Logger::logPlay(result.winCounters.at(0), result.winCounters.at(1), result.payoffCounters.at(0), result.payoffCounters.at(1), iterations);
+    Logger::logPlay(result, iterations);
+    
+    free(result);
 }
 
 void train() {
@@ -106,17 +157,30 @@ void train() {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         return;
     }
-    
+
     Logger::logStart(DEVICE_OPTIONS.at(deviceOption), BLOCKSIZE, iterations);
 
     initStart = std::chrono::system_clock::now();
-    TexasHoldemTrainer trainer = TexasHoldemTrainer("blueprint");
+    TexasHoldemTrainer trainer = TexasHoldemTrainer(FOLDER,  "blueprint");
     trainStart = std::chrono::system_clock::now();
     Logger::logInit(initStart, trainStart);
 
     trainer.trainSequentiell(iterations, deviceOption == 1);
     trainFinish = std::chrono::system_clock::now();
     Logger::logTraining(trainStart, trainFinish, iterations);
+
+    if (gDebug) {
+        for (int i = 0; i < trainer.elapsedKernelTimes.size(); i++) {
+            Logger::logToConsole(std::to_string(trainer.elapsedKernelTimes.at(i) /= iterations) + " ns");
+        }
+        for (int i = 0; i < trainer.elapsedCpuTimes.size(); i++) {
+            Logger::logToConsole(std::to_string(trainer.elapsedCpuTimes.at(i) /= iterations) + " ns");
+        }
+        for (int i = 0; i < trainer.elapsedMemcpyTimes.size(); i++) {
+            Logger::logToConsole(std::to_string(trainer.elapsedMemcpyTimes.at(i) /= iterations) + " ns");
+        }
+    }
+
 }
 
 int main() {
@@ -146,7 +210,11 @@ int main() {
             play();
             break;
         case 3:
+            benchmark();
+            break;
+        case 4:
             return;
         }
     }
 }
+#endif

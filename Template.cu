@@ -45,14 +45,14 @@ Template::Template(Template* schablone) {
     this->structureList = schablone->structureList;
 }
 
-void Template::createBucketFunctions(std::string path, vector<BucketFunction*>* bucketFunctions) {
-    BucketFunction* bucketFunction0 = new BucketFunction(path + "_buckets_" + "0", 0, 2);
+void Template::createBucketFunctions(std::string folder, std::string fileName, vector<BucketFunction*>* bucketFunctions) {
+    BucketFunction* bucketFunction0 = new BucketFunction(folder, fileName + "_buckets_" + "0", 0, 2);
     bucketFunctions->push_back(bucketFunction0);
-    BucketFunction* bucketFunction1 = new BucketFunction(path + "_buckets_" + "1", 1, 5);
+    BucketFunction* bucketFunction1 = new BucketFunction(folder, fileName + "_buckets_" + "1", 1, 5);
     bucketFunctions->push_back(bucketFunction1);
-    BucketFunction* bucketFunction2 = new BucketFunction(path + "_buckets_" + "2", 2, 6);
+    BucketFunction* bucketFunction2 = new BucketFunction(folder, fileName + "_buckets_" + "2", 2, 6);
     bucketFunctions->push_back(bucketFunction2);
-    BucketFunction* bucketFunction3 = new BucketFunction(path + "_buckets_" + "3", 3, 7);
+    BucketFunction* bucketFunction3 = new BucketFunction(folder, fileName + "_buckets_" + "3", 3, 7);
     bucketFunctions->push_back(bucketFunction3);
 }
 
@@ -156,7 +156,7 @@ struct BuildTreeReturnType Template::buildTree() {
     return buildTreeReturnType;
 }
 
-static vector<vector<RoundPlayerInfo>> buildRoundPlayerInfos(vector<BucketFunction*>* bucketFunctions, vector<vector<int>>* roundPlayerActionCounts) {
+static vector<vector<RoundPlayerInfo>> buildRoundPlayerInfos(std::string folder, std::string fileName, vector<BucketFunction*>* bucketFunctions, vector<vector<int>>* roundPlayerActionCounts) {
     vector<vector<RoundPlayerInfo>> roundPlayerInfos;
 
     int templatePointers[2] = { 0,0 };
@@ -170,7 +170,7 @@ static vector<vector<RoundPlayerInfo>> buildRoundPlayerInfos(vector<BucketFuncti
             int startPointTemplate = templatePointers[player];
             templatePointers[player] += elementSize;
 
-            RoundPlayerInfo roundPlayerInfo = RoundPlayerInfo(startPointTemplate, elementSize, bucketFunction, round, player);
+            RoundPlayerInfo roundPlayerInfo = RoundPlayerInfo(folder, fileName, startPointTemplate, elementSize, bucketFunction, round, player);
             roundPlayerInfos.at(round).push_back(roundPlayerInfo);
         }
     }
@@ -293,12 +293,12 @@ StructureList* treeToLists(struct BuildTreeReturnType* tree) {
     return structureList;
 }
 
-Template* Template::createDefaultTemplate(std::string path) {
+Template* Template::createDefaultTemplate(std::string folder, std::string fileName) {
     vector<BucketFunction*> bucketFunctions;
-    createBucketFunctions(path, &bucketFunctions);
+    createBucketFunctions(folder, fileName, &bucketFunctions);
 
     struct BuildTreeReturnType tree = buildTree();
-    vector<vector<RoundPlayerInfo>> roundPlayerInfos = buildRoundPlayerInfos(&bucketFunctions, &tree.roundPlayerActionCounts);
+    vector<vector<RoundPlayerInfo>> roundPlayerInfos = buildRoundPlayerInfos(folder, fileName, &bucketFunctions, &tree.roundPlayerActionCounts);
 
     vector<float*> cumulativeRegrets;
 
