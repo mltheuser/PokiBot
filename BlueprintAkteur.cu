@@ -33,11 +33,9 @@ std::pair<char, float> BlueprintAkteur::act(InformationSet* informationSet) {
         delete[] reads;
 
         std::pair<int, GameState*> result = getCurrentNode(schablone, informationSet->actionHistory);
-        int currentNodeWorklistIndex = result.first;
-        GameState* currentGameState = result.second;
 
-        if (currentNodeWorklistIndex < schablone->structureList->numStateNodes) {
-            TrainingInitStruct* trainingInitStruct = initTrainingInitStruct(schablone, currentNodeWorklistIndex);
+        if (result.first < schablone->structureList->numStateNodes) {
+            TrainingInitStruct* trainingInitStruct = initTrainingInitStruct(schablone, result.first);
 
             vector<float> actions(trainingInitStruct->policy, trainingInitStruct->policy + trainingInitStruct->numChildren);
 
@@ -55,17 +53,17 @@ std::pair<char, float> BlueprintAkteur::act(InformationSet* informationSet) {
                 }
             }
 
-            std::vector<std::pair<char, float>> currentActions = currentGameState->getActions();
-            delete currentGameState;
+            std::vector<std::pair<char, float>> currentActions = result.second->getActions();
+            delete result.second;
+            delete trainingInitStruct;
 
-            free(trainingInitStruct);
             return currentActions.at(actionInt);
         }
         else {
             // TODO
             // hier ist eigentlich schon spielende
         }
-
+        delete result.second;
     }
 
     return std::pair<char, float>('O', 0.f);

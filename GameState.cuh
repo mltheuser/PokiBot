@@ -26,6 +26,7 @@ public:
     GameState(const GameState& gameState);
     vector<pair<char, float>> getActions();
     struct HandleActionReturnType handleAction(pair<char, float> action);
+    GameState* traverseGameState(pair<char, float> action);
     void adjustPot(pair<char, float> action);
 };
 #endif

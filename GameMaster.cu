@@ -75,9 +75,9 @@ std::pair<int, float> GameMaster::play(Template* schablone, vector<std::string> 
         if (action.first == 'f') {
             int winner = (informationSet->player + 1) % 2;
             std::pair<int, GameState*> result = getCurrentNode(schablone, informationSet->actionHistory);
-            GameState* currentGameState = result.second;
-            float payoff = winner == 0 ? currentGameState->pot.second : currentGameState->pot.first;
-            delete currentGameState;
+            float payoff = winner == 0 ? result.second->pot.second : result.second->pot.first;
+            delete result.second;
+            delete informationSet;
             return std::pair<int, float>(winner, payoff);
         }
         else if (roundEnd(informationSet->currentRoundActionHistory, action)) {
@@ -91,13 +91,13 @@ std::pair<int, float> GameMaster::play(Template* schablone, vector<std::string> 
 
                 int winner = draw ? -1 : playerWon ? 0 : 1;
                 std::pair<int, GameState*> result = getCurrentNode(schablone, informationSet->actionHistory);
-                GameState* currentGameState = result.second;
                 float payoff = 0.f;
                 if (!draw) {
-                    payoff = winner == 0 ? currentGameState->pot.second : currentGameState->pot.first;
-                    delete currentGameState;
+                    payoff = winner == 0 ? result.second->pot.second : result.second->pot.first;    
                 }
 
+                delete informationSet;
+                delete result.second;
                 return std::pair<int, float>(winner, payoff);
             }
             else {

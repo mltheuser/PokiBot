@@ -30,16 +30,14 @@ std::pair<char, float> RandomAkteur::act(InformationSet* informationSet) {
     else {
 
         std::pair<int, GameState*> result = getCurrentNode(schablone, informationSet->actionHistory);
-        int currentNodeWorklistIndex = result.first;
-        GameState* currentGameState = result.second;
 
-        if (currentNodeWorklistIndex < schablone->structureList->numStateNodes) {
+        if (result.first < schablone->structureList->numStateNodes) {
 
-            std::vector<std::pair<char, float>> currentActions = currentGameState->getActions();
+            std::vector<std::pair<char, float>> currentActions = result.second->getActions();
 
             int actionInt = rand() % currentActions.size();
 
-            delete currentGameState;
+            delete result.second;
 
             return currentActions.at(actionInt);
 
@@ -48,7 +46,7 @@ std::pair<char, float> RandomAkteur::act(InformationSet* informationSet) {
             // TODO
             // hier ist eigentlich schon spielende
         }
-
+        delete result.second;
     }
 
     return std::pair<char, float>('O', 0.f);

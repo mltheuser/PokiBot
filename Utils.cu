@@ -113,7 +113,7 @@ std::pair<int, GameState*> getCurrentNode(Template* schablone, std::vector<std::
 
         currentNode = schablone->structureList->worklist[currentNodeIndex];
 
-        currentGameState = currentGameState->handleAction(currentAction).gameState;
+        currentGameState = currentGameState->traverseGameState(currentAction);
 
     }
 

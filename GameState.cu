@@ -53,6 +53,34 @@ void GameState::adjustPot(pair<char, float> action) {
     }
 }
 
+GameState* GameState::traverseGameState(pair<char, float> action) {
+    this->adjustPot(action);
+
+    if (action.first == 'f') {
+        this->player0 = !this->player0;
+        return this;
+    }
+    else if (roundEnd(history, action.first)) {
+        if (round == 3) {
+            this->player0 = !this->player0;
+            return this;
+
+        }
+        else {
+            this->player0 = true;
+            this->history = {};
+            this->round++;
+            return this;
+        }
+
+    }
+    else {
+        this->player0 = !this->player0;
+        this->history.push_back(action.first);
+        return this;
+    }
+}
+
 /**
  * action + gamestate -> gibt Knoten und neuen GameState
  * Knoten kann State/LEaf

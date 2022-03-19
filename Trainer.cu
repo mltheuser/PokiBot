@@ -272,7 +272,7 @@ void TexasHoldemTrainer::trainCPU(vector<vector<string>>* playerCards) {
             }
         }
         free(trainingInitStruct->policy);
-        free(trainingInitStruct);
+        delete trainingInitStruct;
     }
 
     //d_1) backwardpass: setze regrets
@@ -318,7 +318,7 @@ void TexasHoldemTrainer::trainCPU(vector<vector<string>>* playerCards) {
             cumulativeRegrets[j] = cumulativeRegrets[j] + std::max(0.f, counterRegrets[j]);
         }
         free(trainingInitStruct->policy);
-        free(trainingInitStruct);
+        delete trainingInitStruct;
     }
 
     //d_2) postpare strategie zurückschreiben
