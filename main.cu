@@ -27,6 +27,8 @@ vector<string> PLAY_OPTIONS = { "vsRandom" };
 string GET_ITERATIONS = "Input number of iterations: ";
 string GET_WRONG_INPUT = "Falsche Eingabe ... zurück zur Hauptauswahl";
 string FOLDER = "outputs";
+string COMPARISON_1 = "comparison";
+string COMPARISON_2 = "comparison_2";
 
 void clearFiles(std::string folder, std::string filePrefix) {
     using std::remove;
@@ -54,7 +56,8 @@ void benchmark() {
     int trainIterations = 10000;
     int maxIterations = 500000;
     int playIterations = 100000;
-    Logger::initBenchmark(FOLDER, "benchmark", DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, trainIterations, maxIterations, playIterations);
+    Logger::initBenchmark(FOLDER, "benchmark" + COMPARISON_1, DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, trainIterations, maxIterations, playIterations);
+    Logger::initBenchmark(FOLDER, "benchmark" + COMPARISON_2, DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, trainIterations, maxIterations, playIterations);
     for (int currentIteration = trainIterations; currentIteration < maxIterations; currentIteration+= trainIterations) {
         std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
         //gpu
@@ -71,9 +74,11 @@ void benchmark() {
 
         GameMaster gameMaster = GameMaster(FOLDER, "blueprint");
         //PlayResult* result = gameMaster.playBlueprintVersusRandom(playIterations);
-        PlayResult* result = gameMaster.playBlueprintVersusBlueprint(playIterations);
-
+        PlayResult* result = gameMaster.playBlueprintVersusBlueprint(playIterations, COMPARISON_1);
         Logger::logPlay(result, playIterations);
+        PlayResult* result2 = gameMaster.playBlueprintVersusBlueprint(playIterations, COMPARISON_2);
+        Logger::logPlay(result2, playIterations);
+        
 
         trainer.schablone->roundInfos.at(3).at(0).bucketFunction->loadBucketFunction();
         size_t bucketListSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->bucketList.size();
@@ -82,7 +87,10 @@ void benchmark() {
 
         std::string fileSize = trainer.schablone->roundInfos.at(3).at(0).blueprintHandler->getFileSize();
 
-        Logger::logBenchmark(FOLDER, "benchmark", currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result);
+        Logger::logBenchmark(FOLDER, "benchmark" + COMPARISON_1, currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result);
+
+        Logger::logBenchmark(FOLDER, "benchmark" + COMPARISON_2, currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result2);
+
 
         free(result);
     }
@@ -127,7 +135,7 @@ void play() {
     cin >> iterations;
     GameMaster gameMaster = GameMaster(FOLDER, "blueprint");
     //PlayResult* result = gameMaster.playBlueprintVersusRandom(iterations);
-    PlayResult* result = gameMaster.playBlueprintVersusBlueprint(iterations);
+    PlayResult* result = gameMaster.playBlueprintVersusBlueprint(iterations, COMPARISON_1);
 
     Logger::logPlay(result, iterations);
     
@@ -184,7 +192,7 @@ void train() {
 }
 
 int main() {
-    srand(0);
+    //srand(0);
 
     int consoleOption;
 

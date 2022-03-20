@@ -118,11 +118,11 @@ std::pair<int, float> GameMaster::play(Template* schablone, vector<std::string> 
     delete informationSet;
 }
 
-PlayResult* GameMaster::playBlueprintVersusBlueprint(int iterations) {
+PlayResult* GameMaster::playBlueprintVersusBlueprint(int iterations, string comparisonBlueprintName) {
     Template* schablone = Template::createDefaultTemplate(folder, fileName);
 
     BlueprintAkteur* blueprintAkteur = new BlueprintAkteur(folder, fileName);
-    BlueprintAkteur* comparisonBlueprintAkteur = new BlueprintAkteur(folder, "comparison_" + fileName);
+    BlueprintAkteur* comparisonBlueprintAkteur = new BlueprintAkteur(folder, comparisonBlueprintName + "_" + fileName);
 
     vector<Akteur*> akteure = { blueprintAkteur, comparisonBlueprintAkteur };
     vector<Akteur*> rematchAkteure = { comparisonBlueprintAkteur, blueprintAkteur };
