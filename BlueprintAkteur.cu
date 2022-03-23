@@ -25,7 +25,22 @@ std::pair<char, float> BlueprintAkteur::act(InformationSet* informationSet) {
     int size = roundInfo.elementSize;
 
     if (newBucket) {
-        return std::pair<char, float>('f', 0.f);
+        std::pair<int, GameState*> result = getCurrentNode(schablone, informationSet->actionHistory);
+
+        if (result.first < schablone->structureList->numStateNodes) {
+
+            std::vector<std::pair<char, float>> currentActions = result.second->getActions();
+
+            int actionInt = rand() % currentActions.size();
+
+            delete result.second;
+
+            return currentActions.at(actionInt);
+        }
+        else {
+            // TODO
+            // hier ist eigentlich schon spielende
+        }
     }
     else {
         float* reads = roundInfo.blueprintHandler->readPolicies(bucketPosition, size * sizeof(float));

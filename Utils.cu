@@ -3,8 +3,6 @@
 #include <cstring>
 #include "RaiseBuckets.cuh"
 
-std::default_random_engine engine;
-
 void normalizeStrategy(float* policy, int size) {
     for (int i = 0; i < size; i++) {
         policy[i] = std::max(policy[i], 0.f);
@@ -65,11 +63,42 @@ bool roundEnd(vector<pair<char, float>> history, pair<char, float> action) {
     return !history.empty() && ((history.back().first == 'c' || history.back().first == 'r') && action.first == 'c');
 }
 
+std::map<unsigned int, unsigned int> getRandomPermutation(const unsigned int& numberOfElements)
+{
+    std::map<unsigned int, unsigned int> permutation;
+
+    //populate the map
+    for (unsigned int i = 0; i < numberOfElements; i++)
+    {
+        permutation[i] = i;
+    }
+
+    //randomize it
+    for (unsigned int i = numberOfElements - 1; i > 0; --i)
+    {
+        //generate a random number in the interval [0, numberOfElements)
+        unsigned long randomValue = rand() % numberOfElements;
+
+        std::swap(permutation[i], permutation[randomValue]);
+    }
+
+    return permutation;
+}
+
 vector<string> getCards() {
     vector<std::string> cards = Cards::getCards();
-    std::shuffle(cards.begin(), cards.end(), engine);
 
-    return cards;
+    std::map<unsigned int, unsigned int> permutation = getRandomPermutation(cards.size());
+
+    vector<std::string> shuffledCards(cards.size(), "");
+
+    for (const auto& kv : permutation) {
+        shuffledCards.at(kv.first) = cards.at(kv.second);
+    }
+
+    //std::shuffle(cards.begin(), cards.end(), engine);
+
+    return shuffledCards;
 }
 
 vector<string> mapCardsToVisibility(vector<string> cards, int player, int round) {

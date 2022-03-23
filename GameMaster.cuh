@@ -15,6 +15,7 @@ public:
     GameMaster(std::string folder, std::string fileName);
     PlayResult* playBlueprintVersusBlueprint(int iterations, string comparisonBlueprintName);
     PlayResult* playBlueprintVersusRandom(int iterations);
+    PlayResult* playBlueprintVersusManual();
     std::pair<int, float> play(Template* schablone, vector<std::string> cards, vector<Akteur*> akteure);
 };
 

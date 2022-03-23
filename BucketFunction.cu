@@ -58,13 +58,13 @@ void BucketFunction::saveBucketFunction() {
 }
 
 std::map<char, char> rankToClassified = {
-       {'2','L'},{'3','L'},{'4','L'},{'5','L'},{'6','L'},{'7','L'},{'8','M'},{'9','M'},{'T','M'},{'J','H'},{'Q','H'},{'K','H'},{'A','H'}
+       {'2','A'},{'3','A'},{'4','A'},{'5','B'},{'6','B'},{'7','B'},{'8','C'},{'9','C'},{'T','C'},{'J','D'},{'Q','D'},{'K','E'},{'A','E'}
 };
 
 char indexToRank[13] = { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A' };
 
 std::vector<char> BucketFunction::bucketCardsToNumbersNeglectStreetsAndFlushes(std::vector<std::string>* cards) {
-    //high card = drei klassen (L, M, H)
+    //high card = drei klassen (A, B, C, D,  E)
     //Paare genauso
     //H: {A, K, Q, J}
     //M: {T, 9, 8}

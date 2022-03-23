@@ -8,6 +8,10 @@ GameMaster::GameMaster(std::string folder, std::string fileName) {
     this->fileName = fileName;
 }
 
+PlayResult* GameMaster::playBlueprintVersusManual() {
+    return nullptr;
+}
+
 PlayResult* GameMaster::playBlueprintVersusRandom(int iterations) {
     Template* schablone = Template::createDefaultTemplate(folder, fileName);
 

@@ -2,7 +2,7 @@
 #define __Utils__
 
 #include <memory>
-#include <random>
+#include <chrono>
 
 #include "Template.cuh"
 #include "BucketFunction.cuh"
