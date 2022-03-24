@@ -33,26 +33,26 @@ string FOLDER = "outputs";
 string COMPARISON_1 = "comparison";
 string COMPARISON_2 = "comparison_2";
 
-void clearFiles(std::string folder, std::string filePrefix) {
-    using std::remove;
-
-    remove((folder + "/" + filePrefix + "_buckets_0").c_str());
-    remove((folder + "/" + filePrefix + "_buckets_1").c_str());
-    remove((folder + "/" + filePrefix + "_buckets_2").c_str());
-    remove((folder + "/" + filePrefix + "_buckets_3").c_str());
-
-    remove((folder + "/" + filePrefix + "00").c_str());
-    remove((folder + "/" + filePrefix + "00").c_str());
-
-    remove((folder + "/" + filePrefix + "00").c_str());
-    remove((folder + "/" + filePrefix + "00").c_str());
-
-    remove((folder + "/" + filePrefix + "00").c_str());
-    remove((folder + "/" + filePrefix + "00").c_str());
-
-    remove((folder + "/" + filePrefix + "00").c_str());
-    remove((folder + "/" + filePrefix + "00").c_str());
-}
+//void clearFiles(std::string folder, std::string filePrefix) {
+//    using std::remove;
+//
+//    remove((folder + "/" + filePrefix + "_buckets_0").c_str());
+//    remove((folder + "/" + filePrefix + "_buckets_1").c_str());
+//    remove((folder + "/" + filePrefix + "_buckets_2").c_str());
+//    remove((folder + "/" + filePrefix + "_buckets_3").c_str());
+//
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//    remove((folder + "/" + filePrefix + "00").c_str());
+//}
 
 void benchmark() {
     string filename, comparison1, comparison2;
@@ -189,25 +189,8 @@ std::string getOptions(std::vector<string> options) {
 }
 
 void clear() {
-   clearFiles(FOLDER, "blueprint");
-    cout << "cleared successfully" << endl;
-   /* int deviceOption;
-
-    cout << "device: cpu(0), gpu(1), all(2)";
-    cin >> deviceOption;
-    if (deviceOption == '0') {
-        clearFiles("cpu");
-    }
-    else if (deviceOption == '1') {
-        clearFiles("gpu");
-    }
-    else if (deviceOption == '2') {
-        clearFiles("cpu");
-        clearFiles("gpu");
-    }
-    else {
-        std::cout << "deletion aborted" << std::endl;
-    }*/
+   //clearFiles(FOLDER, "blueprint");
+    //cout << "cleared successfully" << endl;
 }
 
 void play() {
