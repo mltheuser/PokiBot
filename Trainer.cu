@@ -105,11 +105,6 @@ DeviceStructureList* prepareDevice(Template* schablone) {
     gpuErrchk(cudaMalloc((void**)&dsl->cumulativeRegrets1, size));
     gpuErrchk(cudaMalloc((void**)&dsl->policy1, size));
 
-    size = worklistSize; //evtl. -1
-    size = size * sizeof(float);
-    gpuErrchk(cudaMalloc((void**)&dsl->upstreamPayoffs, size));
-
-
     size = sizeof(DeviceStructureList);
     gpuErrchk(cudaMalloc((void**)&dsl->Dself, size));
     gpuErrchk(cudaMemcpy(dsl->Dself, dsl, size, cudaMemcpyHostToDevice));
@@ -141,7 +136,6 @@ void freeDeviceStructureList(DeviceStructureList* dsl) {
     gpuErrchk(cudaFree(dsl->cumulativeRegrets1));
     gpuErrchk(cudaFree(dsl->policy0));
     gpuErrchk(cudaFree(dsl->policy1));
-    gpuErrchk(cudaFree(dsl->upstreamPayoffs));
 
     gpuErrchk(cudaFree(dsl->Dself));
     free(dsl);
@@ -424,17 +418,15 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
     int numChildren = dsl->numChildren[id];
     int childrenWorklistPointer = dsl->childrenWorklistPointers[id];
 
-    float* policy = policyPointer + dsl->player0[id] ? dsl->policy0 : dsl->policy1;
+    float* policy = dsl->player0[id] ? dsl->policy0 : dsl->policy1;
+    policy += policyPointer;
 
     int* children = dsl->worklist + childrenWorklistPointer;
 
     float nodeUtility = 0.f;
     for (int j = 0; j < numChildren; j++) {
-
-        dsl->upstreamPayoffs[children[j]] = -dsl->payoff[children[j]];
-
-        nodeUtility += policy[j] * dsl->upstreamPayoffs[children[j]];
-
+        
+        nodeUtility += policy[j] * -dsl->payoff[children[j]];
     }
 
     dsl->payoff[id] = nodeUtility;
@@ -445,9 +437,12 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
 
     float counterValue = reachProbabilitiesLocal[currentPlayer] * nodeUtility;
 
-    float* cumulativeRegrets = dsl->player0[id] ? dsl->cumulativeRegrets0 + policyPointer : dsl->cumulativeRegrets1 + policyPointer;
+    float* cumulativeRegrets = dsl->player0[id] ? dsl->cumulativeRegrets0 : dsl->cumulativeRegrets1;
+    cumulativeRegrets += policyPointer;
+
     for (int j = 0; j < numChildren; j++) {
-        float counterActionValue = dsl->upstreamPayoffs[children[j]];
+        float counterActionValue = -dsl->payoff[children[j]];
+
         cumulativeRegrets[j] = cumulativeRegrets[j] + fmaxf(0.f, reachProbabilitiesLocal[otherPlayer] * (counterActionValue - counterValue));
     }
 }
@@ -568,7 +563,7 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     int numLeafNodes = schablone->structureList->numLeafNodes;
 
     int N = numLeafNodes;
-    cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice);
+    gpuErrchk(cudaMemcpy(dsl->numElements, &N, sizeof(int), cudaMemcpyHostToDevice));
     int blockSize = BLOCKSIZE;
     int numBlocks = (N + blockSize - 1) / blockSize;
     if (gDebug) {
@@ -581,6 +576,8 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     }
     else {
         setLeafPayoffs << < numBlocks, blockSize >> > (dsl->Dself);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
     }
 
     //c_1) prepare strategie laden
@@ -603,6 +600,7 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     gpuErrchk(cudaMemcpy(dsl->reachProbabilities, schablone->structureList->reachProbabilities, sizeof(float) * 2, cudaMemcpyHostToDevice));
 
     auto levelPointers = schablone->structureList->levelPointers;
+
     for (int i = 0; i < levelPointers.size(); i++) {
         GetIndexReturnType indexListData = getIndexList(schablone, i);
         
@@ -631,7 +629,6 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     }
 
     //cudaDeviceSynchronize needed for kernel in b), but implicit in c_2)
-
     //d_1) backwardpass: setze regrets
     for (int i = levelPointers.size() - 1; i >= 0; i--) {
         GetIndexReturnType indexListData = getIndexList(schablone, i);
@@ -660,7 +657,6 @@ void TexasHoldemTrainer::trainGPU(vector<vector<string>>* playerCards, DeviceStr
     }
 
     //d_2) postpare strategie zurückschreiben
-
     if (gDebug) {
         auto start = std::chrono::high_resolution_clock::now();
         writeStrategy(playerCards, dsl);

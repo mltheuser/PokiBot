@@ -252,25 +252,27 @@ StructureList* treeToLists(struct BuildTreeReturnType* tree) {
 
     }
 
-    //Ebeneninformationen
     vector<int> levelPointers = { 0 };
-    int pointer = 0;
-    for (int i = 0; i < numStateNodes; i++) {
-        int startingLocalMinChildIndex = childrenWorklistPointers[i];
-        int localMinChildIndexNumChildren = numChildren[i];
-        int localMinChildIndex = numNodes + 1;
-        for (int j = 0; j < localMinChildIndexNumChildren; j++) {
-            if (worklist[startingLocalMinChildIndex + j] < numStateNodes) {
-                localMinChildIndex = std::min(localMinChildIndex, startingLocalMinChildIndex + j);
+
+    int minEbene = numNodes + 1;
+
+    for (int i = 0; i < numNodes; i++) {
+
+        if (worklist[i] < numStateNodes) {
+
+            int minChildOfI = numNodes + 1;
+            for (int j = 0; j < numChildren[worklist[i]]; j++) {
+                if (worklist[childrenWorklistPointers[worklist[i]] + j] < numStateNodes) {
+                    minChildOfI = std::min(minChildOfI, childrenWorklistPointers[worklist[i]] + j);
+                }
+
+                minEbene = std::min(minEbene, minChildOfI);
             }
         }
 
-        if (levelPointers.at(pointer) == i) {
-            pointer++;
-            levelPointers.push_back(localMinChildIndex);
-        }
-        else {
-            levelPointers.at(pointer) = std::min(localMinChildIndex, levelPointers.at(pointer));
+        if (i + 1 == minEbene) {
+            levelPointers.push_back(minEbene);
+            minEbene = numNodes + 1;
         }
     }
 
