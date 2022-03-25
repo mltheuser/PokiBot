@@ -40,7 +40,8 @@ float* BlueprintHandler::readPolicies(int pos, int size) {
     }
 
     char* buffer = new char[size];
-    ifStream.seekg(pos * size);
+    ifStream.seekg(static_cast<std::basic_ostream<char, std::char_traits<char>>::off_type>(pos) * size);
+
     ifStream.read(buffer, size);
 
     float* policies = (float*)buffer;
@@ -56,7 +57,7 @@ void BlueprintHandler::writePolicies(int pos, int size, float* policies) {
         Logger::throwRuntimeError("Output stream nicht mehr offen!");
     }
 
-    ofStream.seekp(pos * size, std::ios_base::beg);
+    ofStream.seekp(static_cast<std::basic_ostream<char, std::char_traits<char>>::off_type>(pos) * size, std::ios_base::beg);
 
     char* charPolicies = (char*)policies;
 
