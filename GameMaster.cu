@@ -9,6 +9,70 @@ GameMaster::GameMaster(std::string folder, std::string fileName) {
 }
 
 PlayResult* GameMaster::playBlueprintVersusManual() {
+    Template* schablone = Template::createDefaultTemplate(folder, fileName);
+
+    BlueprintAkteur* blueprintAkteur = new BlueprintAkteur(folder, fileName);
+    ManualAkteur* manualAkteur = new ManualAkteur(folder, fileName);
+
+    vector<Akteur*> akteure = { blueprintAkteur, manualAkteur };
+    vector<Akteur*> rematchAkteure = { manualAkteur, blueprintAkteur };
+
+    PlayResult* playResult = new PlayResult();
+    bool playing = true;
+    int i = 0;
+
+    Logger::logToConsole("Play start");
+    while(playing) {
+        vector<std::string> cards = getCards();
+
+        if (i % 2 == 0) {
+            std::pair<int, float> result = play(schablone, cards, akteure);
+            int winner = result.first;
+            float payoff = result.second;
+
+            if (winner < 0) {
+                continue;
+            }
+            else {
+                playResult->winCounters.at(winner)++;
+                playResult->payoffCounters.at(winner) += payoff;
+                playResult->payoffCounters.at((winner + 1) % 2) -= payoff;
+            }
+        }
+        else {
+            std::pair<int, float> rematchResult = play(schablone, cards, rematchAkteure);
+            int rematchWinner = rematchResult.first;
+            float rematchPayoff = rematchResult.second;
+
+            if (rematchWinner < 0) {
+                continue;
+            }
+            else {
+                playResult->rematchWinCounters.at(rematchWinner)++;
+                playResult->rematchPayoffCounters.at(rematchWinner) += rematchPayoff;
+                playResult->rematchPayoffCounters.at((rematchWinner + 1) % 2) -= rematchPayoff;
+            }
+        }
+
+        i++;
+        
+        int continueOption;
+        std::cout << "new round (0), quit(1)" << std::endl;;
+        std::cin >> continueOption;
+        do {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        } while (!std::cin);
+
+        if (continueOption != 0) playing = false;
+    }
+
+    delete blueprintAkteur;
+    delete manualAkteur;
+    delete schablone;
+
+    return playResult;
+
     return nullptr;
 }
 
@@ -126,15 +190,16 @@ PlayResult* GameMaster::playBlueprintVersusBlueprint(int iterations, string comp
     Template* schablone = Template::createDefaultTemplate(folder, fileName);
 
     BlueprintAkteur* blueprintAkteur = new BlueprintAkteur(folder, fileName);
-    BlueprintAkteur* comparisonBlueprintAkteur = new BlueprintAkteur(folder, comparisonBlueprintName + "_" + fileName);
+    BlueprintAkteur* comparisonBlueprintAkteur = new BlueprintAkteur(folder, comparisonBlueprintName);
 
     vector<Akteur*> akteure = { blueprintAkteur, comparisonBlueprintAkteur };
     vector<Akteur*> rematchAkteure = { comparisonBlueprintAkteur, blueprintAkteur };
 
     PlayResult* playResult = new PlayResult();
 
+    Logger::logToConsole("Play start");
     for (int i = 0; i < iterations; i++) {
-        //if (i % 1000 == 0) Logger::logIteration(i);
+        if (i % 1000 == 0) Logger::logIteration(i);
 
         vector<std::string> cards = getCards();
 

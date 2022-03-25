@@ -10,7 +10,7 @@
 using std::vector;
 using std::string;
 
-constexpr bool gDebug = false;
+constexpr bool gDebug = true;
 constexpr auto BLOCKSIZE = 1024;
 
 struct DeviceStructureList {
@@ -47,9 +47,11 @@ public:
     Template* schablone;
     BlueprintHandler* blueprintHandler;
 
-    vector<double> elapsedKernelTimes = { 0.0, 0.0, 0.0 };
-    vector<double> elapsedCpuTimes = { 0.0, 0.0, 0.0 };
-    vector<double> elapsedMemcpyTimes = { 0.0 };
+    vector<double> gpuBenchmarkKernelTimes = { 0.0, 0.0, 0.0 };
+    vector<double> gpuBenchmarkCpuTimes = { 0.0, 0.0, 0.0 };
+    vector<double> gpuBenchmarkMemcpyTimes = { 0.0 };
+
+    vector<double> cpuBenchmarkCpuTimes = { 0.0, 0.0, 0.0, 0.0, 0.0 };
 
     TexasHoldemTrainer(string folder, string fileName);
     ~TexasHoldemTrainer();
@@ -58,8 +60,17 @@ public:
     void trainGPU(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
     void trainSequentiell(int numIterations, bool useGpu);
 
-    void writeStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
-    void loadStrategy(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
+    void writeStrategyFromDevice(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
+    void loadStrategyToDevice(vector<vector<string>>* playerCards, DeviceStructureList* dsl);
+    void setLeafPayoffsGpu(DeviceStructureList* dsl);
+    void setReachProbabilitiesAndPoliciesGpu(DeviceStructureList* dsl);
+    void setRegretsGpu(DeviceStructureList* dsl);
+
+    void setLeafPayoffsCpu(std::pair<bool, bool> drawPlayerWonPair);
+    void loadStrategyCpu(vector<vector<string>>* playerCards);
+    void setReachProbabilitiesCpu();
+    void setRegretsCpu();
+    void writeStrategyCpu(vector<vector<string>>* playerCards);
 };
 
 #endif

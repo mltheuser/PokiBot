@@ -3,6 +3,7 @@
 
 #include "BlueprintAkteur.cuh"
 #include "RandomAkteur.cuh"
+#include "ManualAkteur.cuh"
 #include "Logger.cuh"
 
 #include <string>

@@ -11,7 +11,7 @@ ManualAkteur::~ManualAkteur() {
 }
 
 ManualAkteur::ManualAkteur(std::string folder, std::string fileName) {
-    Template* schablone = Template::createDefaultTemplate(folder, fileName);
+    schablone = Template::createDefaultTemplate(folder, fileName);
 }
 
 std::pair<char, float> ManualAkteur::act(InformationSet* informationSet) {

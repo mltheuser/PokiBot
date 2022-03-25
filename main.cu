@@ -23,9 +23,9 @@ using std::vector;
 
 vector<string> CONSOLE_OPTIONS = { "clear", "train", "play", "benchmark", "exit" };
 vector<string> DEVICE_OPTIONS = { "cpu", "gpu" };
-vector<string> PLAY_OPTIONS = { "vsRandom" };
+vector<string> PLAY_OPTIONS = { "blueprint vs blueprint", "blueprint vs random",  "blueprint versus manual" };
 string GET_FILENAME = "Input filename (blueprint): ";
-string GET_COMPARISON_FILENAME = "Input filename (play vs random): ";
+string GET_COMPARISON_FILENAME = "Input filename (comparison_blueprint): ";
 string GET_ITERATIONS = "Input number of iterations: ";
 string GET_WRONG_INPUT = "Falsche Eingabe ... zurück zur Hauptauswahl";
 string GET_BENCHMARKING_INPUT = "Input filename (blueprint), comparison_1 (comparison), comparison_2 (random), trainMaxIterations (200k), trainIterationSteps (5k), playIterations (25k)";
@@ -55,291 +55,316 @@ string COMPARISON_2 = "comparison_2";
 //}
 
 void benchmark() {
-    string filename, comparison1, comparison2;
-    int trainMaxIterations, tranIterationSteps, playIterations;
-    bool comparison2Random;
-    
-    cout << GET_BENCHMARKING_INPUT;
+	string filename, comparison1, comparison2;
+	int trainMaxIterations, tranIterationSteps, playIterations;
+	bool comparison2Random;
 
-    cin >> filename;
+	cout << GET_BENCHMARKING_INPUT;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cin >> filename;
 
-    if (filename == "0") filename = "blueprint";
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    cin >> comparison1;
+	if (filename == "0") filename = "blueprint";
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cin >> comparison1;
 
-    if (comparison1 == "0") comparison1 = COMPARISON_1;
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    cin >> comparison2;
+	if (comparison1 == "0") comparison1 = COMPARISON_1;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cin >> comparison2;
 
-    if (comparison2 == "0") comparison2Random = true;
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    cin >> trainMaxIterations;
+	if (comparison2 == "0") comparison2Random = true;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cin >> trainMaxIterations;
 
-    if (trainMaxIterations == 0) trainMaxIterations = 200000;
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    cin >> tranIterationSteps;
+	if (trainMaxIterations == 0) trainMaxIterations = 200000;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cin >> tranIterationSteps;
 
-    if (tranIterationSteps == 0) tranIterationSteps = 5000;
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    cin >> playIterations;
+	if (tranIterationSteps == 0) tranIterationSteps = 5000;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cin >> playIterations;
 
-    if (playIterations == 0) playIterations = 25000;
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    Logger::initBenchmark(FOLDER, "benchmark" + comparison1, DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, tranIterationSteps, trainMaxIterations, playIterations);
-    Logger::initBenchmark(FOLDER, "benchmark" + comparison2, DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, tranIterationSteps, trainMaxIterations, playIterations);
+	if (playIterations == 0) playIterations = 25000;
 
-    TexasHoldemTrainer trainer = TexasHoldemTrainer(FOLDER, filename);
-    GameMaster gameMaster = GameMaster(FOLDER, filename);
+	Logger::initBenchmark(FOLDER, "benchmark" + comparison1, DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, tranIterationSteps, trainMaxIterations, playIterations);
+	Logger::initBenchmark(FOLDER, "benchmark" + comparison2, DEVICE_OPTIONS.at(1), BLOCKSIZE, raiseSizes, tranIterationSteps, trainMaxIterations, playIterations);
 
-    for (int currentIteration = tranIterationSteps; currentIteration < trainMaxIterations; currentIteration+= tranIterationSteps) {
-        std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
-        //gpu
-        Logger::logStart(DEVICE_OPTIONS.at(1), BLOCKSIZE, tranIterationSteps);
+	TexasHoldemTrainer trainer = TexasHoldemTrainer(FOLDER, filename);
+	GameMaster gameMaster = GameMaster(FOLDER, filename);
 
-        initStart = std::chrono::system_clock::now();
-        
-        trainStart = std::chrono::system_clock::now();
-        Logger::logInit(initStart, trainStart);
+	for (int currentIteration = tranIterationSteps; currentIteration < trainMaxIterations; currentIteration += tranIterationSteps) {
+		std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
+		//gpu
+		Logger::logStart(DEVICE_OPTIONS.at(1), BLOCKSIZE, tranIterationSteps);
 
-        trainer.trainSequentiell(tranIterationSteps, true);
-        trainFinish = std::chrono::system_clock::now();
-        Logger::logTraining(trainStart, trainFinish, tranIterationSteps);
+		initStart = std::chrono::system_clock::now();
 
-        
-        PlayResult* result = gameMaster.playBlueprintVersusBlueprint(playIterations, comparison1);
-        PlayResult* result2;
+		trainStart = std::chrono::system_clock::now();
+		Logger::logInit(initStart, trainStart);
 
-        if (comparison2Random) {
-            result2 = gameMaster.playBlueprintVersusRandom(playIterations);
-        }
-        else {
-            result2 = gameMaster.playBlueprintVersusBlueprint(playIterations, comparison2);
-        }
-
-        Logger::logPlay(result, playIterations);
-        Logger::logPlay(result2, playIterations);
-        
-
-        trainer.schablone->roundInfos.at(3).at(0).bucketFunction->loadBucketFunction();
-        size_t bucketListSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->bucketList.size();
-        size_t bucketSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->size * 2;
-        size_t bucketCount = bucketListSize / bucketSize;
-
-        std::string fileSize = trainer.schablone->roundInfos.at(3).at(0).blueprintHandler->getFileSize();
-
-        Logger::logBenchmark(FOLDER, "benchmark" + comparison1, currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result);
-
-        Logger::logBenchmark(FOLDER, "benchmark" + comparison2, currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result2);
+		trainer.trainSequentiell(tranIterationSteps, true);
+		trainFinish = std::chrono::system_clock::now();
+		Logger::logTraining(trainStart, trainFinish, tranIterationSteps);
 
 
-        free(result);
-    }
+		PlayResult* result = gameMaster.playBlueprintVersusBlueprint(playIterations, comparison1);
+		PlayResult* result2;
 
-    
+		if (comparison2Random) {
+			result2 = gameMaster.playBlueprintVersusRandom(playIterations);
+		}
+		else {
+			result2 = gameMaster.playBlueprintVersusBlueprint(playIterations, comparison2);
+		}
+
+		Logger::logPlay(result, playIterations);
+		Logger::logPlay(result2, playIterations);
+
+		trainer.schablone->roundInfos.at(3).at(0).bucketFunction->loadBucketFunction();
+		size_t bucketListSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->bucketList.size();
+		size_t bucketSize = trainer.schablone->roundInfos.at(3).at(0).bucketFunction->size * 2;
+		size_t bucketCount = bucketListSize / bucketSize;
+
+		std::string fileSize = trainer.schablone->roundInfos.at(3).at(0).blueprintHandler->getFileSize();
+
+		Logger::logBenchmark(FOLDER, "benchmark" + comparison1, currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result);
+
+		Logger::logBenchmark(FOLDER, "benchmark" + comparison2, currentIteration, playIterations, fileSize, bucketCount, initStart, trainStart, trainFinish, result2);
+
+		free(result);
+	}
 }
 
 std::string getOptions(std::vector<string> options) {
-    std::ostringstream optionsString;
-    for (int i = 0; i < options.size(); i++) {
-        optionsString << options.at(i) << " (" << i << ")" << (i == options.size()-1 ? ": " : ", ");
-    }
-    return optionsString.str();
+	std::ostringstream optionsString;
+	for (int i = 0; i < options.size(); i++) {
+		optionsString << options.at(i) << " (" << i << ")" << (i == options.size() - 1 ? ": " : ", ");
+	}
+	return optionsString.str();
 }
 
 void clear() {
-   //clearFiles(FOLDER, "blueprint");
-    //cout << "cleared successfully" << endl;
+	//clearFiles(FOLDER, "blueprint");
+	 //cout << "cleared successfully" << endl;
 }
 
 void play() {
-    int playOption, iterations;
-    string filename, comparisonFilename;
+	int iterations, playOption;
+	string filename, comparisonFilename;
 
-    cout << GET_ITERATIONS;
-    cin >> iterations;
-    
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cout << GET_ITERATIONS;
+	cin >> iterations;
 
-    cout << GET_FILENAME;
-    cin >> filename;
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	cout << getOptions(PLAY_OPTIONS);
+	cin >> playOption;
 
-    if (filename == "0") filename = "blueprint";
-
-    cout << GET_COMPARISON_FILENAME;
-    cin >> comparisonFilename;
-
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
 
-    GameMaster gameMaster = GameMaster(FOLDER, filename);
-    PlayResult* result;
 
-    if (comparisonFilename == "0") {
-        gameMaster.playBlueprintVersusRandom(iterations);
-    }
-    else {
-        gameMaster.playBlueprintVersusBlueprint(iterations, comparisonFilename);
-    }
+	cout << GET_FILENAME;
+	cin >> filename;
 
-    Logger::logPlay(result, iterations);
-    
-    free(result);
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
+
+	if (filename == "0") filename = "blueprint";
+
+
+
+	if (playOption == 0) {
+		cout << GET_COMPARISON_FILENAME;
+		cin >> comparisonFilename;
+
+		if (!cin) {
+			cout << GET_WRONG_INPUT << endl;
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			return;
+		}
+
+		if (comparisonFilename == "0") comparisonFilename = "comparison_blueprint";
+	}
+
+	PlayResult* result;
+	GameMaster gameMaster = GameMaster(FOLDER, filename);
+
+	switch (playOption) {
+	case 0:
+		result = gameMaster.playBlueprintVersusBlueprint(iterations, comparisonFilename);
+		break;
+	case 1:
+		result = gameMaster.playBlueprintVersusRandom(iterations);
+		break;
+	case 2:
+		result = gameMaster.playBlueprintVersusManual();
+		break;
+	}
+
+	Logger::logPlay(result, iterations);
+
+	free(result);
 }
 
 void train() {
-    int deviceOption, iterations;
-    string filename;
-    std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
+	int deviceOption, iterations;
+	string filename;
+	std::chrono::system_clock::time_point initStart, trainStart, trainFinish;
 
-    cout << getOptions(DEVICE_OPTIONS);
-    cin >> deviceOption;
+	cout << getOptions(DEVICE_OPTIONS);
+	cin >> deviceOption;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    cout << GET_ITERATIONS;
-    cin >> iterations;
+	cout << GET_ITERATIONS;
+	cin >> iterations;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    cout << GET_FILENAME;
-    cin >> filename;
+	cout << GET_FILENAME;
+	cin >> filename;
 
-    if (!cin) {
-        cout << GET_WRONG_INPUT << endl;
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        return;
-    }
+	if (!cin) {
+		cout << GET_WRONG_INPUT << endl;
+		std::cin.clear();
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		return;
+	}
 
-    if (filename == "0") filename = "blueprint";
+	if (filename == "0") filename = "blueprint";
 
-    Logger::logStart(DEVICE_OPTIONS.at(deviceOption), BLOCKSIZE, iterations);
+	Logger::logStart(DEVICE_OPTIONS.at(deviceOption), BLOCKSIZE, iterations);
 
-    initStart = std::chrono::system_clock::now();
-    TexasHoldemTrainer trainer = TexasHoldemTrainer(FOLDER,  filename);
-    trainStart = std::chrono::system_clock::now();
-    Logger::logInit(initStart, trainStart);
+	initStart = std::chrono::system_clock::now();
+	TexasHoldemTrainer trainer = TexasHoldemTrainer(FOLDER, filename);
+	trainStart = std::chrono::system_clock::now();
+	Logger::logInit(initStart, trainStart);
 
-    trainer.trainSequentiell(iterations, deviceOption == 1);
-    trainFinish = std::chrono::system_clock::now();
-    Logger::logTraining(trainStart, trainFinish, iterations);
+	trainer.trainSequentiell(iterations, deviceOption == 1);
+	trainFinish = std::chrono::system_clock::now();
+	Logger::logTraining(trainStart, trainFinish, iterations);
 
-    if (gDebug) {
-        for (int i = 0; i < trainer.elapsedKernelTimes.size(); i++) {
-            Logger::logToConsole(std::to_string(trainer.elapsedKernelTimes.at(i) /= iterations) + " ns");
-        }
-        for (int i = 0; i < trainer.elapsedCpuTimes.size(); i++) {
-            Logger::logToConsole(std::to_string(trainer.elapsedCpuTimes.at(i) /= iterations) + " ns");
-        }
-        for (int i = 0; i < trainer.elapsedMemcpyTimes.size(); i++) {
-            Logger::logToConsole(std::to_string(trainer.elapsedMemcpyTimes.at(i) /= iterations) + " ns");
-        }
-    }
+	if (gDebug) {
 
+		if (deviceOption == 1) {
+			for (int i = 0; i < trainer.gpuBenchmarkKernelTimes.size(); i++) {
+				Logger::logToConsole(std::to_string(trainer.gpuBenchmarkKernelTimes.at(i) /= iterations) + " ns");
+			}
+			for (int i = 0; i < trainer.gpuBenchmarkCpuTimes.size(); i++) {
+				Logger::logToConsole(std::to_string(trainer.gpuBenchmarkCpuTimes.at(i) /= iterations) + " ns");
+			}
+			for (int i = 0; i < trainer.gpuBenchmarkMemcpyTimes.size(); i++) {
+				Logger::logToConsole(std::to_string(trainer.gpuBenchmarkMemcpyTimes.at(i) /= iterations) + " ns");
+			}
+		}
+		else {
+			for (int i = 0; i < trainer.cpuBenchmarkCpuTimes.size(); i++) {
+				Logger::logToConsole(std::to_string(trainer.cpuBenchmarkCpuTimes.at(i) /= iterations) + " ns");
+			}
+		}
+	}
 }
 
 int main() {
-    //srand(0);
-    srand(std::chrono::system_clock::now().time_since_epoch().count());
+	//srand(0);
+	srand(std::chrono::system_clock::now().time_since_epoch().count());
 
-    int consoleOption;
+	int consoleOption;
 
-    while (true) {
-        cout << getOptions(CONSOLE_OPTIONS);
-        cin >> consoleOption;
+	while (true) {
+		cout << getOptions(CONSOLE_OPTIONS);
+		cin >> consoleOption;
 
-        if (!cin) {
-            cout << GET_WRONG_INPUT << endl;
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            continue;
-        }
+		if (!cin) {
+			cout << GET_WRONG_INPUT << endl;
+			std::cin.clear();
+			std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			continue;
+		}
 
-        switch (consoleOption) {
-        case 0:
-            clear();
-            break;
-        case 1:
-            train();
-            break;
-        case 2:
-            play();
-            break;
-        case 3:
-            benchmark();
-            break;
-        case 4:
-            return;
-        }
-    }
+		switch (consoleOption) {
+		case 0:
+			clear();
+			break;
+		case 1:
+			train();
+			break;
+		case 2:
+			play();
+			break;
+		case 3:
+			benchmark();
+			break;
+		case 4:
+			return;
+		}
+	}
 }
 #endif
