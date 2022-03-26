@@ -7,5 +7,9 @@ RoundPlayerInfo::RoundPlayerInfo(std::string folder, std::string fileName, int s
     this->elementSize = elementSize;
     this->bucketFunction = bucketFunction;
 
-    this->blueprintHandler = new BlueprintHandler(folder, fileName, round, player);
+    size_t bucketListSize = bucketFunction->bucketList.size();
+    size_t bucketSize = bucketFunction->size * 2;
+    size_t bucketCount = bucketListSize / bucketSize;
+
+    this->blueprintHandler = new BlueprintHandler(folder, fileName, round, player, bucketCount);
 }

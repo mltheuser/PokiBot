@@ -126,6 +126,7 @@ void TexasHoldemTrainer::loadStrategyCpu(vector<vector<string>>* playerCards) {
 
 			if (newBucket) {
 				info.bucketFunction->bucketList.insert(info.bucketFunction->bucketList.end(), bucket.begin(), bucket.end());
+				info.blueprintHandler->enlargeFlushVector();
 				float* zeroArray = new float[size] {0.f};
 				info.blueprintHandler->writePolicies(pos, size * sizeof(float), zeroArray);
 				delete[](zeroArray);
@@ -134,6 +135,7 @@ void TexasHoldemTrainer::loadStrategyCpu(vector<vector<string>>* playerCards) {
 				RoundPlayerInfo otherInfo = schablone->roundInfos.at(round).at(otherPlayer);
 				int otherSize = otherInfo.elementSize;
 				float* otherZeroArray = new float[otherSize] {0.f};
+				otherInfo.blueprintHandler->enlargeFlushVector();
 				otherInfo.blueprintHandler->writePolicies(pos, otherSize * sizeof(float), otherZeroArray);
 				delete[](otherZeroArray);
 			}
@@ -536,6 +538,7 @@ void TexasHoldemTrainer::loadStrategyToDevice(vector<vector<string>>* playerCard
 
 			if (newBucket) {
 				info.bucketFunction->bucketList.insert(info.bucketFunction->bucketList.end(), bucket.begin(), bucket.end());
+				info.blueprintHandler->enlargeFlushVector();
 				float* zeroArray = new float[size] {0.f};
 				info.blueprintHandler->writePolicies(pos, size * sizeof(float), zeroArray);
 				delete[](zeroArray);
@@ -544,6 +547,7 @@ void TexasHoldemTrainer::loadStrategyToDevice(vector<vector<string>>* playerCard
 				RoundPlayerInfo otherInfo = schablone->roundInfos.at(round).at(otherPlayer);
 				int otherSize = otherInfo.elementSize;
 				float* otherZeroArray = new float[otherSize] {0.f};
+				otherInfo.blueprintHandler->enlargeFlushVector();
 				otherInfo.blueprintHandler->writePolicies(pos, otherSize * sizeof(float), otherZeroArray);
 				delete[](otherZeroArray);
 			}

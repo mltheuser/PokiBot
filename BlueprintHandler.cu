@@ -8,7 +8,7 @@ std::string getPath(std::string folder, std::string fileName, int round, int pla
     return folder + "/" + fileName + std::to_string(round) + std::to_string(player);
 }
 
-BlueprintHandler::BlueprintHandler(std::string folder, std::string fileName, int round, int player) {
+BlueprintHandler::BlueprintHandler(std::string folder, std::string fileName, int round, int player, int bucketCount) {
     path = getPath(folder, fileName, round, player);
     if (!blueprintExists(path)) {
         createBlueprint(path);
@@ -18,6 +18,8 @@ BlueprintHandler::BlueprintHandler(std::string folder, std::string fileName, int
     std::ifstream pIfStream(path, std::ios::binary | std::ios::in);
     ofStream = std::move(pOfStream);
     ifStream = std::move(pIfStream);
+
+    flushVector.resize(bucketCount);
 }
 
 bool BlueprintHandler::blueprintExists(string path) {
@@ -37,6 +39,11 @@ void BlueprintHandler::createBlueprint(string path) {
 float* BlueprintHandler::readPolicies(int pos, int size) {
     if (!ifStream.is_open()) {
         Logger::throwRuntimeError("Input stream nicht mehr offen!");
+    }
+
+    if (flushVector.at(pos) == true) {
+        ofStream.flush();
+        std::fill(flushVector.begin(), flushVector.end(), false);
     }
 
     char* buffer = new char[size];
@@ -63,10 +70,16 @@ void BlueprintHandler::writePolicies(int pos, int size, float* policies) {
 
     ofStream.write(charPolicies, size);
 
-    ofStream.flush();
+
+    flushVector.at(pos) = true;
+    //ofStream.flush();
 }
 
 std::string BlueprintHandler::getFileSize() {
     std::ifstream file(path, std::ios::binary | std::ios::ate);
     return std::to_string(file.tellg());
+}
+
+void BlueprintHandler::enlargeFlushVector() {
+    flushVector.push_back(false);
 }
