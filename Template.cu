@@ -61,6 +61,8 @@ struct BuildTreeReturnType Template::buildTree() {
 
     StateNode* root = new StateNode();
     GameState* gameState = new GameState();
+    gameState->pot.first = 1.f;
+    gameState->pot.second = 2.f;
 
     vector<struct NodeInformation> nodeInformations;
     vector<LeafNode*> leafNodes;

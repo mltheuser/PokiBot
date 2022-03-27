@@ -25,7 +25,7 @@ GameState::GameState(const GameState& gameState) {
 vector<pair<char, float>> GameState::getActions() {
     vector<pair<char, float>> actions{ pair<char,float>('c',0.f) };
 
-    if ((history.size() != 0 && history.back() == 'r')) actions.push_back(pair<char, float>('f', 0.f));
+    if (history.size() == 0 || (history.size() != 0 && history.back() == 'r')) actions.push_back(pair<char, float>('f', 0.f));
     if (history.size() < 2) {
         vector<pair<char, float>> raiseSizes = getRaises();
         for (pair<char, float> raiseSize : raiseSizes) {

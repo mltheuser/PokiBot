@@ -180,7 +180,7 @@ void TexasHoldemTrainer::setRegretsCpu() {
 		upstreamPayoffs.reserve(numChildren);
 
 		for (int j = 0; j < numChildren; j++) {
-			upstreamPayoffs.push_back(-1 * schablone->structureList->payoff[children[j]]);
+			schablone->structureList->player0[i] == schablone->structureList->player0[children[j]] ? upstreamPayoffs.push_back(1 * schablone->structureList->payoff[children[j]]) : upstreamPayoffs.push_back(-1 * schablone->structureList->payoff[children[j]]);
 		}
 
 		float* policy = trainingInitStruct->policy;
@@ -461,8 +461,7 @@ __global__ void setRegrets(DeviceStructureList* dsl) {
 
 	float nodeUtility = 0.f;
 	for (int j = 0; j < numChildren; j++) {
-
-		nodeUtility += policy[j] * -dsl->payoff[children[j]];
+		dsl->player0[id] == dsl->player0[children[j]] ? nodeUtility += policy[j] * dsl->payoff[children[j]] : nodeUtility += policy[j] * -dsl->payoff[children[j]];
 	}
 
 	dsl->payoff[id] = nodeUtility;
