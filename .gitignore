@@ -5,5 +5,4 @@ blueprint*
 !BlueprintHandler.cuh
 benchmark*
 x64/*
-.vs/*
 log.txt
