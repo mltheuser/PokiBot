@@ -5,8 +5,9 @@ Steht dir ein Windows-Rechner und damit Visual Studio zur Verfügung, besteht da
 1. Clone the repository using git clone https://github.com/Kecksbox/PokiBot.git.
 2. Open the Projekt test_proj.sln in Visual Studio.
 3. Go to Projekt > Build Customizations > And check your cuda version.
-4. Build.
-5. Enjoy!
+4. Erstelle einen leeren Ordner mit dem Namen "outputs" im RootVerzeichnis.
+5. Build.
+6. Enjoy!
 
 # Usage
 
@@ -25,4 +26,8 @@ Hier ist, wo du die wichtigsten Dinge finden kannst:
 
 - Die RaiseSizes können als vector in der RaiseBuckets.cuh gefunden werden. Stell sicher, dass du sie aufsteigend sortierst.
 - Spielen wird über ein Zusammenspiel von Gamemaster und Actors realisiert. Actors haben eine einzige Methode act(infoset), die den nächsten Zug des Spieler ausgibt. Für das OnlineSetting würde der GameMaster durch die Schnittstelle ersetzt und vor dem Akteur ein Kommunikationsmodul nötig, dass InfoSets und Aktionen in das jeweils erwartete Format übersetzt. Ausgangspunkt sollte hier der BlueprintActor sein. Also der Actor, der streng nach den gelernten Blueprints spielt.
-- Die Bukets kannst du anpassen indem du die getBucket(cards) Methode in BucketFunction.cu umschreibst.
+- Die Buckets kannst du anpassen indem du die getBucket(cards) Methode in BucketFunction.cu umschreibst.
+- In Trainer.cuh gibt es noch zwei anpassbare Konstanten von Interesse. gDebug schaltet den Profiler an. BLOCKSIZE kontrolliert die BlockSize beim Aufruf von CudaKernels.
+
+# Plots
+Im Plots-Ordner findet man verschiedene Python-Dateien. Die durch das Benchmarking entstehenden .txt Dateien können in diesen Ordner kopiert werden und nach eventuell nötigen Änderungen der Pfade in den pythonSkripten für das Erstellen der Graphen in unserer Abgabe verwendet werden.
