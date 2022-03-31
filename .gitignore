@@ -5,10 +5,5 @@ blueprint*
 !BlueprintHandler.cuh
 benchmark*
 x64/*
-.vs/*
-test_proj.vcxproj
-test_proj.vcxproj
 log.txt
-test_proj.vcxproj
-test_proj.vcxproj
-test_proj.vcxproj.filters
+.vs

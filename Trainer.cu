@@ -10,6 +10,7 @@
 #include <numeric>
 #include <cstring>
 #include <chrono>
+#include <algorithm>
 
 using std::memcpy;
 using std::inner_product;
