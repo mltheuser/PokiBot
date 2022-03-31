@@ -254,8 +254,9 @@ void play() {
 		result = gameMaster.playBlueprintVersusRandom(iterations);
 		break;
 	case 2:
-		result = gameMaster.playBlueprintVersusManual();
-		break;
+		cout << "play blueprint versus manual is work in progress . . ." << endl;
+		return;
+		/*result = gameMaster.playBlueprintVersusManual();*/
 	}
 
 	Logger::logPlay(result, iterations);
