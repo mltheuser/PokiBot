@@ -25,3 +25,4 @@ Hier ist, wo du die wichtigsten Dinge finden kannst:
 
 - Die RaiseSizes können als vector in der RaiseBuckets.cuh gefunden werden. Stell sicher, dass du sie aufsteigend sortierst.
 - Spielen wird über ein Zusammenspiel von Gamemaster und Actors realisiert. Actors haben eine einzige Methode act(infoset), die den nächsten Zug des Spieler ausgibt. Für das OnlineSetting würde der GameMaster durch die Schnittstelle ersetzt und vor dem Akteur ein Kommunikationsmodul nötig, dass InfoSets und Aktionen in das jeweils erwartete Format übersetzt. Ausgangspunkt sollte hier der BlueprintActor sein. Also der Actor, der streng nach den gelernten Blueprints spielt.
+- Die Bukets kannst du anpassen indem du die getBucket(cards) Methode in BucketFunction.cu umschreibst.
