@@ -10,7 +10,7 @@
 using std::vector;
 using std::string;
 
-constexpr bool gDebug = true;
+constexpr bool gDebug = false;
 constexpr auto BLOCKSIZE = 1024;
 
 struct DeviceStructureList {
