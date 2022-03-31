@@ -1,0 +1,2 @@
+Schablone erstellt in: 110 ms
+100000 Iterationen trainiert in: 284472 ms [284s, 2.84472 ms/iteration]
