@@ -1,3 +1,5 @@
+A counterfactual regret-based poker bot. Details can be found in the [submission](https://github.com/mltheuser/PokiBot/files/10073587/PJS22.pdf) on the project under Group 3.
+
 # Setup
 Das Projekt kommt mit einer Projektconfig für Visual Studio.
 Steht dir ein Windows-Rechner und damit Visual Studio zur Verfügung, besteht das Setup daher aus ein paar einfachen Schritten:
