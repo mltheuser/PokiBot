@@ -11,7 +11,7 @@ Steht dir ein Windows-Rechner und damit Visual Studio zur Verfügung, besteht da
 5. Build.
 6. Enjoy!
 
-# Usage
+# Usage 
 
 Die Anwendung wird per commandline bedient.
 
